@@ -306,7 +306,7 @@ export async function getExportData() {
 
   const [leadsRes, profilesRes, recsRes, feedbackRes] = await Promise.all([
     db.from("leads")
-      .select("id, name, phone, email, age, district, stream, percentage, preferred_language, created_at, session_id")
+      .select("id, name, phone, email, age, gender, district, stream, percentage, preferred_language, created_at, session_id")
       .order("created_at", { ascending: false }),
     db.from("student_profiles").select("session_id, profile"),
     db.from("recommendations")
@@ -334,7 +334,7 @@ export async function getExportData() {
 
   return leads.map((lead: {
     id: string; name: string; phone: string; email: string | null;
-    age: number | null; district: string; stream: string;
+    age: number | null; gender: string | null; district: string; stream: string;
     percentage: number | null; preferred_language: string;
     created_at: string; session_id: string;
   }) => {
@@ -397,6 +397,7 @@ export async function getExportData() {
       Phone:              lead.phone,
       Email:              lead.email ?? "",
       Age:                lead.age != null ? String(lead.age) : "",
+      Gender:             lead.gender ?? "",
       District:           lead.district,
       Stream:             STREAM_LABELS[lead.stream] ?? lead.stream,
       Percentage:         lead.percentage != null ? `${lead.percentage}%` : "",

@@ -86,6 +86,12 @@ export default async function LeadDetailPage({ params }: Props) {
             {displayName && <Field label="Name"     value={displayName} />}
             <Field label="Phone"    value={l.phone as string} mono />
             {Boolean(l.email)  && <Field label="Email"    value={l.email  as string} />}
+            {Boolean(l.gender) && <Field label="Gender" value={
+              l.gender === "male" ? "Male" :
+              l.gender === "female" ? "Female" :
+              l.gender === "other" ? "Other" :
+              "Prefer not to say"
+            } />}
             {l.age != null && (
               <Field label="Age" value={`${l.age} yrs${l.is_minor ? " (minor)" : ""}`} />
             )}

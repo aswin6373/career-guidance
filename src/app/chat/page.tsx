@@ -221,7 +221,7 @@ function ChatInner() {
     const payload = {
       sessionId,
       email: String(fd.get("email") ?? ""),
-      gender: String(fd.get("gender") ?? "") || undefined,
+      gender: String(fd.get("gender") ?? ""),
       district: String(fd.get("district") ?? ""),
       preferredLanguage: "en",
       consentGiven: fd.get("consentGiven") === "on",
@@ -448,8 +448,8 @@ function ChatInner() {
             </div>
             <form onSubmit={submitDataForm} className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">Email</label>
-                <Input name="email" type="email" required placeholder="you@example.com" className="h-9 text-sm" />
+                <label className="mb-1 block text-xs font-medium text-foreground">Email (optional)</label>
+                <Input name="email" type="email" placeholder="you@example.com" className="h-9 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -462,9 +462,9 @@ function ChatInner() {
                   </Select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-foreground">Gender (optional)</label>
-                  <Select name="gender" defaultValue="" className="h-9 text-sm">
-                    <option value="">Prefer not to say</option>
+                  <label className="mb-1 block text-xs font-medium text-foreground">Gender</label>
+                  <Select name="gender" required defaultValue="" className="h-9 text-sm">
+                    <option value="" disabled>Select</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>

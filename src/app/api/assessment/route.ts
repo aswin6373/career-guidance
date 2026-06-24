@@ -165,10 +165,10 @@ export async function POST(req: NextRequest) {
         score,
       });
 
-      await db.from("conversations").insert([
-        { session_id: sessionId, role: "assistant", stage: "aptitude", content: aiItem.question, model: "aptitude" },
-        { session_id: sessionId, role: "user", stage: "aptitude", content: selectedChoice?.label ?? choiceId, model: "aptitude" },
-      ]).catch(() => {});
+      void db.from("conversations").insert([
+        { session_id: sessionId, role: "assistant", stage: "aptitude", content: aiItem.questionText, model: "aptitude" },
+        { session_id: sessionId, role: "user", stage: "aptitude", content: selectedChoice?.text ?? choiceId, model: "aptitude" },
+      ]).then(undefined, () => {});
 
       // Build a combined profile delta for this answer:
       //   • Aptitude items → update the aptitude dimension score
@@ -234,10 +234,10 @@ export async function POST(req: NextRequest) {
       score: score !== null ? score : null,
     });
 
-    await db.from("conversations").insert([
+    void db.from("conversations").insert([
       { session_id: sessionId, role: "assistant", stage: "aptitude", content: item.questionText, model: "aptitude" },
       { session_id: sessionId, role: "user", stage: "aptitude", content: choice.text, model: "aptitude" },
-    ]).catch(() => {});
+    ]).then(undefined, () => {});
 
     const { data: allResponses } = await db
       .from("assessment_responses")

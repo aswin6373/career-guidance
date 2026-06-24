@@ -100,9 +100,9 @@ export async function POST(req: NextRequest) {
     if (prev && (prev.value || prev.text)) {
       const answerContent = prev.text ?? (prev.value ? (INTEREST_LABELS[prev.value] ?? prev.value) : null);
       if (answerContent) {
-        await db.from("conversations").insert({
+        void db.from("conversations").insert({
           session_id: sessionId, role: "user", stage: "followup", content: answerContent, model: "followup",
-        }).catch(() => {});
+        }).then(undefined, () => {});
       }
     }
 
@@ -140,9 +140,9 @@ export async function POST(req: NextRequest) {
         topInterests: topInterests.length ? topInterests : undefined,
         freeTexts: freeTexts.length ? freeTexts : undefined,
       });
-      await db.from("conversations").insert({
+      void db.from("conversations").insert({
         session_id: sessionId, role: "assistant", stage: "followup", content: q.content, model: "followup",
-      }).catch(() => {});
+      }).then(undefined, () => {});
       return NextResponse.json({ question: q.content, choices: q.choices, done: false });
     } catch {
       // AI failed — skip the follow-up step gracefully.

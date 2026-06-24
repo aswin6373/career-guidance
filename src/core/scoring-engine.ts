@@ -196,7 +196,7 @@ function academicFit(career: Career, profile: StudentProfile): number {
   const domainHints: Record<string, string[]> = {
     "computing":        ["maths", "computer", "physics"],
     "engineering":      ["maths", "physics"],
-    "medical":          ["biology", "chemistry"],
+    "medica":           ["biology", "chemistry"],
     "allied_health":    ["biology", "chemistry"],
     "sciences":         ["physics", "chemistry", "biology", "maths"],
     "commerce_finance": ["accountancy", "economics", "maths", "business"],
@@ -240,18 +240,23 @@ function goalScore(career: Career, profile: StudentProfile): number {
   }
   if (goal === "entrance_exams") {
     const stream = profile.academic.stream;
-    // NEET (science_bio) → strongly boosts medical & allied health careers
-    if (stream === "science_bio" && ["medical", "allied_health"].includes(career.domainId)) return 0.95;
-    // JEE (science_maths / science_cs) → engineering & computing
-    if ((stream === "science_maths" || stream === "science_cs") && ["engineering", "computing", "architecture"].includes(career.domainId)) return 0.95;
-    // CLAT (humanities) → law
-    if (stream === "humanities" && career.domainId === "law") return 0.95;
-    // CUET / IPMAT (commerce) → management & commerce_finance
-    if (stream === "commerce" && ["management", "commerce_finance"].includes(career.domainId)) return 0.85;
-    // Any career needing mandatory higher study is still aligned
-    if (career.higherStudyRequired === "mandatory") return 0.75;
-    if (career.higherStudyRequired === "preferred") return 0.6;
-    return 0.4;
+    // Per-stream lookup: primary domains are the direct target of the entrance exam,
+    // secondary domains are also opened by the same exam but are not the main goal.
+    const ENTRANCE_DOMAINS: Record<string, { primary: string[]; secondary: string[] }> = {
+      science_bio:   { primary: ["medica"],                         secondary: ["allied_health"] },
+      science_maths: { primary: ["engineering"],                    secondary: ["computing", "architecture"] },
+      science_cs:    { primary: ["computing"],                      secondary: ["engineering"] },
+      humanities:    { primary: ["law"],                            secondary: ["government", "humanities"] },
+      commerce:      { primary: ["management", "commerce_finance"], secondary: [] },
+    };
+    const map = stream ? ENTRANCE_DOMAINS[stream] : null;
+    if (map) {
+      if (map.primary.includes(career.domainId)) return 0.95;
+      if (map.secondary.includes(career.domainId)) return 0.80;
+    }
+    if (career.higherStudyRequired === "mandatory") return 0.70;
+    if (career.higherStudyRequired === "preferred") return 0.55;
+    return 0.40;
   }
   if (goal === "job_soon") return career.minYearsToEarn && career.minYearsToEarn <= 4 ? 0.9 : 0.4;
   if (goal === "business") {

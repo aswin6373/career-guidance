@@ -143,22 +143,6 @@ const SUBJECT_INTEREST_CHOICES: Record<string, Array<{ label: string; value: str
     { label: "Working on government policies and planning", value: "law_justice" },
     { label: "Working as a financial advisor or investment researcher", value: "business_money" },
   ],
-  "History": [
-    { label: "Researching past events, old scripts, and records", value: "science_research" },
-    { label: "Teaching history or social science", value: "helping_teaching" },
-    { label: "Studying law, arguing cases, or becoming a lawyer (LLB)", value: "law_justice" },
-    { label: "Preparing for civil services (IAS/IPS/PSC)", value: "law_justice" },
-    { label: "Archaeology (digging up old history sites)", value: "nature_agriculture" },
-    { label: "Writing history books or scripts for movies/documentaries", value: "media_communication" },
-  ],
-  "Political Science": [
-    { label: "Studying law, arguing cases, or becoming a lawyer (LLB)", value: "law_justice" },
-    { label: "Preparing for civil services (IAS/IPS/PSC)", value: "law_justice" },
-    { label: "Working in public policy, government, or international relations", value: "law_justice" },
-    { label: "Journalism, political commentary, or public affairs", value: "media_communication" },
-    { label: "Research in politics, society, or economics", value: "science_research" },
-    { label: "Social work, NGOs, or community development", value: "helping_teaching" },
-  ],
   "English": [
     { label: "Writing articles, books, or news journalism", value: "media_communication" },
     { label: "Teaching literature or English language", value: "helping_teaching" },
@@ -571,6 +555,10 @@ export default function StartPage() {
   const [miniRec, setMiniRec] = useState<MiniRecResult | null>(null);
   const [recError, setRecError] = useState(false);
 
+  // AI-generated Q3 choices (when subject is typed or not in hardcoded lookup)
+  const [aiQ3, setAiQ3] = useState<{ question: string; choices: Array<{ label: string; value: string }> } | null>(null);
+  const [q3LoadingAI, setQ3LoadingAI] = useState(false);
+
   // Animate question transitions
   const [visible, setVisible] = useState(true);
 
@@ -615,7 +603,7 @@ export default function StartPage() {
       case 0: return "Hey there! Let's get started. What is your name, age, and phone number?";
       case 1: return "Which stream are you studying in Plus Two?";
       case 2: return "Which subjects do you enjoy the most or score best in? (pick up to 2)";
-      case 3: return "Would you be interested in any of these?";
+      case 3: return aiQ3?.question ?? "Would you be interested in any of these?";
       case 4: return "What are you planning to do after Plus Two?";
       case 5: return "What matters most to you when choosing a career?";
       case 6: return "Can your family comfortably pay for a private college if needed?";
@@ -631,36 +619,33 @@ export default function StartPage() {
     switch (qIndex) {
       case 2: return SUBJECT_CHOICES[s];
       case 3: {
+        // Use AI-generated choices if available (typed subject or unknown subject)
+        if (aiQ3) {
+          return aiQ3.choices.map((c, idx) => ({ label: c.label, value: `${c.value}::${idx}` }));
+        }
+
         let baseChoices: Array<{ label: string; value: string }> = [];
         if (selectedSubjectsList.length > 0) {
           if (selectedSubjectsList.length === 1) {
             baseChoices = getDynamicInterestChoices(selectedSubjectsList[0], s);
           } else {
-            // Check if there is a predefined combined interest list for this specific combo
             const comboKey = [...selectedSubjectsList].sort().join("+");
             if (COMBINED_SUBJECT_INTERESTS[comboKey]) {
               baseChoices = COMBINED_SUBJECT_INTERESTS[comboKey];
             } else {
               const choices1 = getDynamicInterestChoices(selectedSubjectsList[0], s);
               const choices2 = getDynamicInterestChoices(selectedSubjectsList[1], s);
-              
-              // Interleave choices so they get even representation of both subjects
               const interleaved: Array<{ label: string; value: string }> = [];
               const maxLen = Math.max(choices1.length, choices2.length);
               for (let i = 0; i < maxLen; i++) {
                 if (choices1[i]) interleaved.push(choices1[i]);
                 if (choices2[i]) interleaved.push(choices2[i]);
               }
-              
-              // Deduplicate choices based on labels/values
               const seen = new Set<string>();
               const merged: Array<{ label: string; value: string }> = [];
               for (const c of interleaved) {
                 const key = c.label.toLowerCase() + "::" + c.value;
-                if (!seen.has(key)) {
-                  seen.add(key);
-                  merged.push(c);
-                }
+                if (!seen.has(key)) { seen.add(key); merged.push(c); }
               }
               baseChoices = merged;
             }
@@ -669,11 +654,7 @@ export default function StartPage() {
           baseChoices = INTEREST_CHOICES[s];
         }
 
-        // Limit options to a maximum of 6 and append unique suffix to ensure selection checkbox works independently
-        return baseChoices.slice(0, 6).map((c, idx) => ({
-          label: c.label,
-          value: `${c.value}::${idx}`,
-        }));
+        return baseChoices.slice(0, 6).map((c, idx) => ({ label: c.label, value: `${c.value}::${idx}` }));
       }
       case 4: return getGoalChoices(stream);
       case 5: return PRIORITY_CHOICES;
@@ -737,7 +718,6 @@ export default function StartPage() {
       setBusy(false);
       return;
     }
-    setBusy(false);
     advance();
   }
 
@@ -751,7 +731,9 @@ export default function StartPage() {
         setTextVal("");
         setInfoMessage(null);
         setVisible(true);
+        setBusy(false);
       } else {
+        setBusy(false);
         setPhase("loading");
         fetchMiniRec();
       }
@@ -791,13 +773,42 @@ export default function StartPage() {
     void postAnswer({ value: stream, percentage: pct, isChoice: true });
   }
 
+  function needsAiQ3(subjects: string[], typedText: string): boolean {
+    if (typedText.trim()) return true;
+    return subjects.some((s) => !SUBJECT_INTEREST_CHOICES[s]);
+  }
+
+  async function fetchAiQ3(subjects: string[], typedText: string, streamVal: string) {
+    const subjectList = typedText.trim() ? [typedText.trim()] : subjects;
+    setQ3LoadingAI(true);
+    try {
+      const res = await fetch("/api/q3choices", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sessionId, stream: streamVal, subjects: subjectList }),
+      });
+      if (!res.ok) throw new Error("failed");
+      const data = await res.json() as { question: string; choices: Array<{ label: string; value: string }> };
+      setAiQ3(data);
+    } catch {
+      // silently fall back to hardcoded choices
+    } finally {
+      setQ3LoadingAI(false);
+    }
+  }
+
   function onSubjectContinue() {
     if (selectedSubjects.size === 0 && !textVal.trim()) return;
-    if (textVal.trim() && selectedSubjects.size === 0) {
-      void postAnswer({ text: textVal.trim(), isChoice: false });
+    const typed = textVal.trim();
+    const selected = Array.from(selectedSubjects);
+    if (typed && selectedSubjects.size === 0) {
+      void postAnswer({ text: typed, isChoice: false });
     } else if (selectedSubjects.size > 0) {
-      setSelectedSubjectsList(Array.from(selectedSubjects));
-      void postAnswer({ values: Array.from(selectedSubjects), isChoice: true });
+      setSelectedSubjectsList(selected);
+      void postAnswer({ values: selected, isChoice: true });
+    }
+    if (needsAiQ3(selected, typed) && sessionId && stream) {
+      void fetchAiQ3(selected, typed, stream);
     }
   }
 
@@ -1150,8 +1161,16 @@ export default function StartPage() {
               </div>
             )}
 
+            {/* Q3 AI loading state */}
+            {qIndex === 3 && q3LoadingAI && (
+              <div className="clay-card p-6 flex flex-col items-center gap-3">
+                <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                <p className="text-sm text-muted-foreground">Finding the best options for you…</p>
+              </div>
+            )}
+
             {/* Q2–Q5: Choice buttons */}
-            {qIndex >= 2 && (
+            {qIndex >= 2 && !(qIndex === 3 && q3LoadingAI) && (
               <div className="clay-card p-4 space-y-2">
                 {getChoices().map((c, i) => {
                   const isSelected =

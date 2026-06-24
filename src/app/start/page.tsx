@@ -42,6 +42,7 @@ const SUBJECT_CHOICES: Record<Stream, Array<{ label: string; value: string }>> =
   ],
   humanities: [
     { label: "History", value: "History" },
+    { label: "Political Science", value: "Political Science" },
     { label: "English", value: "English" },
     { label: "Psychology", value: "Psychology" },
     { label: "Economics", value: "Economics" },
@@ -145,10 +146,18 @@ const SUBJECT_INTEREST_CHOICES: Record<string, Array<{ label: string; value: str
   "History": [
     { label: "Researching past events, old scripts, and records", value: "science_research" },
     { label: "Teaching history or social science", value: "helping_teaching" },
-    { label: "Working in museums and preserving heritage sites", value: "design_visual" },
-    { label: "Preparing for civil services (IAS/IPS) or government administration", value: "law_justice" },
+    { label: "Studying law, arguing cases, or becoming a lawyer (LLB)", value: "law_justice" },
+    { label: "Preparing for civil services (IAS/IPS/PSC)", value: "law_justice" },
     { label: "Archaeology (digging up old history sites)", value: "nature_agriculture" },
     { label: "Writing history books or scripts for movies/documentaries", value: "media_communication" },
+  ],
+  "Political Science": [
+    { label: "Studying law, arguing cases, or becoming a lawyer (LLB)", value: "law_justice" },
+    { label: "Preparing for civil services (IAS/IPS/PSC)", value: "law_justice" },
+    { label: "Working in public policy, government, or international relations", value: "law_justice" },
+    { label: "Journalism, political commentary, or public affairs", value: "media_communication" },
+    { label: "Research in politics, society, or economics", value: "science_research" },
+    { label: "Social work, NGOs, or community development", value: "helping_teaching" },
   ],
   "English": [
     { label: "Writing articles, books, or news journalism", value: "media_communication" },

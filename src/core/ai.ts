@@ -456,6 +456,7 @@ export async function followUpQuestion(params: {
   statedCareer?: string;
   topInterests?: string[]; // human labels of their strongest interests
   freeTexts?: string[];    // raw phrases the student typed earlier
+  allowedClusters?: string[]; // restrict choice values to these clusters only
 }): Promise<{ content: string; choices: AIChoice[]; model: string }> {
   const focus = [
     "Build on the interest or activity they showed strongest. Ask which PART of that field they would enjoy doing the most.",
@@ -496,8 +497,9 @@ export async function followUpQuestion(params: {
         `"Making the app fast and reliable" / "Working with data and numbers"\n` +
         `BAD example (never do this) — Q: "Code solo or team?" choices: "Solo" / "Team" / "Design" / "Analyse" ` +
         `(too short, and the choices don't all answer the question).\n\n` +
-        `Each choice "value" MUST be the single best-fitting interest cluster ID from this list ONLY:\n` +
-        `  ${INTEREST_CLUSTERS.join(", ")}\n\n` +
+        `Each choice "value" MUST be one of these interest cluster IDs:\n` +
+        `  ${params.allowedClusters?.length ? params.allowedClusters.join(", ") : INTEREST_CLUSTERS.join(", ")}\n` +
+        (params.allowedClusters?.length ? `IMPORTANT: Do NOT use any cluster outside that list — we already know the student's field; deepen within it.\n\n` : "\n") +
         `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "technology_coding" }, ... ] }`,
     },
   ];

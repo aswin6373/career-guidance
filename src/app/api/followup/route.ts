@@ -96,6 +96,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Save the student's answer to conversations (best effort).
+    if (prev && (prev.value || prev.text)) {
+      const answerContent = prev.text ?? (prev.value ? (INTEREST_LABELS[prev.value] ?? prev.value) : null);
+      if (answerContent) {
+        await db.from("conversations").insert({
+          session_id: sessionId, role: "user", stage: "followup", content: answerContent, model: "followup",
+        }).catch(() => {});
+      }
+    }
+
     // 2. Done after the last follow-up.
     if (index >= TOTAL_FOLLOWUPS) {
       return NextResponse.json({ done: true });
@@ -130,6 +140,9 @@ export async function POST(req: NextRequest) {
         topInterests: topInterests.length ? topInterests : undefined,
         freeTexts: freeTexts.length ? freeTexts : undefined,
       });
+      await db.from("conversations").insert({
+        session_id: sessionId, role: "assistant", stage: "followup", content: q.content, model: "followup",
+      }).catch(() => {});
       return NextResponse.json({ question: q.content, choices: q.choices, done: false });
     } catch {
       // AI failed — skip the follow-up step gracefully.

@@ -165,6 +165,11 @@ export async function POST(req: NextRequest) {
         score,
       });
 
+      await db.from("conversations").insert([
+        { session_id: sessionId, role: "assistant", stage: "aptitude", content: aiItem.question, model: "aptitude" },
+        { session_id: sessionId, role: "user", stage: "aptitude", content: selectedChoice?.label ?? choiceId, model: "aptitude" },
+      ]).catch(() => {});
+
       // Build a combined profile delta for this answer:
       //   • Aptitude items → update the aptitude dimension score
       //   • Personality/interest items → update the interest cluster the student chose
@@ -228,6 +233,11 @@ export async function POST(req: NextRequest) {
       answer: choiceId,
       score: score !== null ? score : null,
     });
+
+    await db.from("conversations").insert([
+      { session_id: sessionId, role: "assistant", stage: "aptitude", content: item.questionText, model: "aptitude" },
+      { session_id: sessionId, role: "user", stage: "aptitude", content: choice.text, model: "aptitude" },
+    ]).catch(() => {});
 
     const { data: allResponses } = await db
       .from("assessment_responses")

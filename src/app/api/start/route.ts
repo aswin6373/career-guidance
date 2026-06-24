@@ -113,6 +113,15 @@ function buildDirectDelta(
   }
 }
 
+function buildStartQuizAnswer(questionIndex: number, value?: string, values?: string[]): string {
+  if (questionIndex === 2) return (values?.length ? values : value ? [value] : []).join(", ");
+  if (questionIndex === 3) {
+    const raw = values?.length ? values : value ? [value] : [];
+    return raw.map((v) => v.split("::")[0]).join(", ");
+  }
+  return value ?? "";
+}
+
 // POST /api/start — process one answer from the 6-question start quiz.
 export async function POST(req: NextRequest) {
   const ipHash = await clientIpHash(req);
@@ -214,6 +223,11 @@ export async function POST(req: NextRequest) {
         .update({ stream: value, percentage: percentage ?? null, updated_at: new Date().toISOString() })
         .eq("session_id", sessionId);
 
+      await db.from("conversations").insert([
+        { session_id: sessionId, role: "assistant", stage: "start_quiz", content: QUESTION_TEXTS[1], model: "start_quiz" },
+        { session_id: sessionId, role: "user", stage: "start_quiz", content: `${value}${percentage != null ? `, ${percentage}%` : ""}`, model: "start_quiz" },
+      ]).catch(() => {});
+
       return NextResponse.json({ ok: true });
     }
 
@@ -263,6 +277,14 @@ export async function POST(req: NextRequest) {
         },
         { onConflict: "session_id" }
       );
+    }
+
+    const answerContent = text ?? buildStartQuizAnswer(questionIndex, value, values);
+    if (answerContent.trim()) {
+      await db.from("conversations").insert([
+        { session_id: sessionId, role: "assistant", stage: "start_quiz", content: QUESTION_TEXTS[questionIndex], model: "start_quiz" },
+        { session_id: sessionId, role: "user", stage: "start_quiz", content: answerContent, model: "start_quiz" },
+      ]).catch(() => {});
     }
 
     return NextResponse.json({ ok: true });

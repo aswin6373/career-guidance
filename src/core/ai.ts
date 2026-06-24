@@ -459,9 +459,9 @@ export async function followUpQuestion(params: {
   allowedClusters?: string[]; // restrict choice values to these clusters only
 }): Promise<{ content: string; choices: AIChoice[]; model: string }> {
   const focus = [
-    "Build on the interest or activity they showed strongest. Ask which PART of that field they would enjoy doing the most.",
-    "Help them compare a few real career directions that fit what they like. Ask which kind of work appeals to them most.",
-    "Ask what kind of day-to-day work they picture themselves doing, to confirm their direction.",
+    "Ask an indirect situational question grounded in their current student life — a free period, a school event, a weekend afternoon — where their choice naturally reveals their interest. Do NOT ask 'which field interests you' or anything that shows what you are measuring.",
+    "Ask about a concrete habit or activity from their daily life right now — what they do in free time, how they spend a weekend, what role they take in a group task — so their answer reveals their direction without them realising it.",
+    "Ask a simple everyday scenario question. The 4 choices should feel like normal options any student would pick from, but each one maps to a different interest cluster. Never mention careers, fields, or subjects directly.",
   ][Math.min(params.index, 2)];
 
   const known = [
@@ -483,23 +483,30 @@ export async function followUpQuestion(params: {
       role: "user",
       content:
         `Here is what we already know about the student:\n${known || "(very little — keep it general)"}\n\n` +
-        `Ask ONE friendly follow-up question (a full sentence, about 8–18 words) that builds on what they told us. ` +
+        `Ask ONE question (a full sentence, about 8–18 words) that helps us understand this student better.\n` +
         `${focus}\n` +
         `Do NOT re-ask their stream, subjects, budget, or goal — we already have those.\n\n` +
-        `RULES FOR THE 4 CHOICES (very important — the bad example below is why):\n` +
-        `- Give EXACTLY 4 choices. Each must be a COMPLETE, concrete activity written as a short phrase ` +
-        `(about 4–9 words). No one-word fragments.\n` +
-        `- All 4 choices must answer the SAME question and be the same KIND of thing (parallel options).\n` +
-        `- Make them clearly different from each other so the answer tells us something new.\n` +
-        `- Keep them realistic for the student's stream.\n` +
-        `GOOD example — Q: "When you build something with code, what do you enjoy most?"\n` +
-        `  choices: "Designing how the screen looks" / "Solving tricky logic problems" / ` +
-        `"Making the app fast and reliable" / "Working with data and numbers"\n` +
-        `BAD example (never do this) — Q: "Code solo or team?" choices: "Solo" / "Team" / "Design" / "Analyse" ` +
-        `(too short, and the choices don't all answer the question).\n\n` +
+        `RULES FOR THE QUESTION:\n` +
+        `- Ask about a simple everyday situation — a free period, weekend, group task, or school activity.\n` +
+        `- The question itself must be NEUTRAL — do not frame it around their known interest.\n` +
+        `  BAD: "You see an unfair situation — what do you do?" (pushes toward law before they even answer)\n` +
+        `  GOOD: "Your school has a free period. What do you end up doing?"\n\n` +
+        `RULES FOR THE 4 CHOICES (most important):\n` +
+        `- The 4 choices MUST cover at least 3 DIFFERENT interest areas — not all the same theme.\n` +
+        `  If the student likes law, include 1–2 law-related choices AND 2 choices from completely different areas.\n` +
+        `  This contrast is what makes the answer meaningful. If all choices are the same theme, the question is useless.\n` +
+        `- Each choice must be a COMPLETE concrete activity (5–9 words). No one-word fragments.\n` +
+        `- All 4 must answer the SAME question and feel like natural options a student would genuinely consider.\n` +
+        `GOOD example — Q: "Your school has a free period. What do you end up doing?"\n` +
+        `  choices: "Helping a classmate who is stuck on something" / "Watching a documentary on a real case" / ` +
+        `"Sketching something in my notebook" / "Figuring out how an app or gadget works"\n` +
+        `BAD example — Q: "What do you do on a weekend?" choices: all 4 are law/debate/social issues themed.\n\n` +
         `Each choice "value" MUST be one of these interest cluster IDs:\n` +
-        `  ${params.allowedClusters?.length ? params.allowedClusters.join(", ") : INTEREST_CLUSTERS.join(", ")}\n` +
-        (params.allowedClusters?.length ? `IMPORTANT: Do NOT use any cluster outside that list — we already know the student's field; deepen within it.\n\n` : "\n") +
+        `  ${INTEREST_CLUSTERS.join(", ")}\n` +
+        (params.allowedClusters?.length
+          ? `The student's already-known interests are: ${params.allowedClusters.join(", ")}. ` +
+            `Include 1–2 choices from these clusters and 2 choices from DIFFERENT clusters for contrast.\n\n`
+          : "\n") +
         `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "technology_coding" }, ... ] }`,
     },
   ];

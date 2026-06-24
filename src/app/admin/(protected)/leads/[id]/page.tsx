@@ -271,35 +271,64 @@ export default async function LeadDetailPage({ params }: Props) {
           )}
 
           {/* Conversation history */}
-          {conversations.length > 0 && (
-            <Section title="Conversation history">
-              {(["start_quiz", "followup", "aptitude"] as const).map((stage) => {
-                const msgs = conversations.filter((m) => m.stage === stage);
-                if (!msgs.length) return null;
-                return (
-                  <div key={stage}>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      {STAGE_LABELS[stage]}
-                    </p>
-                    <div className="space-y-1.5">
-                      {msgs.map((m, i) => (
-                        <div
-                          key={i}
-                          className={`rounded-lg px-3 py-2 text-xs ${
-                            m.role === "assistant"
-                              ? "bg-muted/50 text-muted-foreground"
-                              : "bg-primary/10 text-foreground font-medium"
-                          }`}
-                        >
-                          {m.content}
-                        </div>
-                      ))}
+          <Section title={`Conversation history${conversations.length > 0 ? ` (${conversations.length})` : ""}`}>
+            {conversations.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No conversation saved yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {(["start_quiz", "followup", "aptitude"] as const).map((stage) => {
+                  const msgs = conversations.filter((m) => m.stage === stage);
+                  if (!msgs.length) return null;
+                  return (
+                    <div key={stage}>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {STAGE_LABELS[stage]}
+                      </p>
+                      <div className="space-y-1.5">
+                        {msgs.map((m, i) => (
+                          <div
+                            key={i}
+                            className={`rounded-lg px-3 py-2 text-xs ${
+                              m.role === "assistant"
+                                ? "bg-muted/50 text-muted-foreground"
+                                : "bg-primary/10 text-foreground font-medium"
+                            }`}
+                          >
+                            {m.content}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </Section>
-          )}
+                  );
+                })}
+                {/* Show ungrouped messages that don't match a known stage */}
+                {(() => {
+                  const known = new Set(["start_quiz", "followup", "aptitude"]);
+                  const other = conversations.filter((m) => !m.stage || !known.has(m.stage));
+                  if (!other.length) return null;
+                  return (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Other</p>
+                      <div className="space-y-1.5">
+                        {other.map((m, i) => (
+                          <div
+                            key={i}
+                            className={`rounded-lg px-3 py-2 text-xs ${
+                              m.role === "assistant"
+                                ? "bg-muted/50 text-muted-foreground"
+                                : "bg-primary/10 text-foreground font-medium"
+                            }`}
+                          >
+                            <span className="opacity-50">[{m.stage ?? "no stage"}]</span> {m.content}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </Section>
         </div>
       </div>
     </div>

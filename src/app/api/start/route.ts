@@ -223,10 +223,10 @@ export async function POST(req: NextRequest) {
         .update({ stream: value, percentage: percentage ?? null, updated_at: new Date().toISOString() })
         .eq("session_id", sessionId);
 
-      await db.from("conversations").insert([
+      void db.from("conversations").insert([
         { session_id: sessionId, role: "assistant", stage: "start_quiz", content: QUESTION_TEXTS[1], model: "start_quiz" },
         { session_id: sessionId, role: "user", stage: "start_quiz", content: `${value}${percentage != null ? `, ${percentage}%` : ""}`, model: "start_quiz" },
-      ]).catch(() => {});
+      ]).then(undefined, () => {});
 
       return NextResponse.json({ ok: true });
     }
@@ -281,10 +281,10 @@ export async function POST(req: NextRequest) {
 
     const answerContent = text ?? buildStartQuizAnswer(questionIndex, value, values);
     if (answerContent.trim()) {
-      await db.from("conversations").insert([
+      void db.from("conversations").insert([
         { session_id: sessionId, role: "assistant", stage: "start_quiz", content: QUESTION_TEXTS[questionIndex], model: "start_quiz" },
         { session_id: sessionId, role: "user", stage: "start_quiz", content: answerContent, model: "start_quiz" },
-      ]).catch(() => {});
+      ]).then(undefined, () => {});
     }
 
     return NextResponse.json({ ok: true });

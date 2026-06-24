@@ -88,10 +88,7 @@ function buildDirectDelta(
       return null;
     case 4: // goal
       {
-        let goalVal = value;
-        if (value === "entrance_exams" || value === "repeat_year") {
-          goalVal = "higher_study";
-        }
+        const goalVal = value === "repeat_year" ? "entrance_exams" : value;
         return { aspiration: { goalOrientation: goalVal as GoalOrientation } };
       }
     case 5: // priorities

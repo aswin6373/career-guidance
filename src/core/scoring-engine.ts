@@ -82,7 +82,7 @@ export function scoreCareer(career: Career, profile: StudentProfile, kb: Knowled
     aptitude: Object.keys(profile.aptitude).length > 0,
     academic: profile.academic.strongSubjects.length > 0,
     personality: Object.values(profile.personality).some((v) => Math.abs(v ?? 0) > 0),
-    aspiration: !!profile.aspiration.goalOrientation,
+    aspiration: !!profile.aspiration.goalOrientation || (profile.aspiration.careerPriorities?.length ?? 0) > 0,
     constraint: !!profile.constraints.budgetBand || !!profile.constraints.locationPref,
   };
 
@@ -230,36 +230,87 @@ function personalityFit(career: Career, profile: StudentProfile): number {
   return clamp(0.3 + 0.7 * ratio);
 }
 
-function aspirationFit(career: Career, profile: StudentProfile): number {
+function goalScore(career: Career, profile: StudentProfile): number {
   const goal = profile.aspiration.goalOrientation;
   if (!goal) return 0.5;
   if (goal === "higher_study") {
-    // Careers that require or prefer postgraduate study align best with this goal.
     if (career.higherStudyRequired === "mandatory") return 0.9;
     if (career.higherStudyRequired === "preferred") return 0.75;
-    return 0.6; // 'none' — compatible but not a strong pull
+    return 0.6;
+  }
+  if (goal === "entrance_exams") {
+    const stream = profile.academic.stream;
+    // NEET (science_bio) → strongly boosts medical & allied health careers
+    if (stream === "science_bio" && ["medical", "allied_health"].includes(career.domainId)) return 0.95;
+    // JEE (science_maths / science_cs) → engineering & computing
+    if ((stream === "science_maths" || stream === "science_cs") && ["engineering", "computing", "architecture"].includes(career.domainId)) return 0.95;
+    // CLAT (humanities) → law
+    if (stream === "humanities" && career.domainId === "law") return 0.95;
+    // CUET / IPMAT (commerce) → management & commerce_finance
+    if (stream === "commerce" && ["management", "commerce_finance"].includes(career.domainId)) return 0.85;
+    // Any career needing mandatory higher study is still aligned
+    if (career.higherStudyRequired === "mandatory") return 0.75;
+    if (career.higherStudyRequired === "preferred") return 0.6;
+    return 0.4;
   }
   if (goal === "job_soon") return career.minYearsToEarn && career.minYearsToEarn <= 4 ? 0.9 : 0.4;
   if (goal === "business") {
     if (career.riskLevel === "entrepreneurial") return 0.9;
     if (career.riskLevel === "moderate") return 0.6;
-    return 0.4; // stable careers don't align with entrepreneurial goal
+    return 0.4;
   }
   if (goal === "government") {
-    // Score by how strongly a career tracks to government recruitment.
     if (career.domainId === "government") return 0.9;
-    // Humanities, law, commerce, engineering all have significant govt pipelines (PSC, IBPS, PSU).
     const govCompatible = ["humanities", "law", "commerce_finance", "engineering"];
     if (govCompatible.includes(career.domainId)) return 0.6;
-    return 0.4; // primarily private-sector paths
+    return 0.4;
   }
   return 0.5;
 }
 
+function priorityScore(career: Career, profile: StudentProfile): number {
+  const priorities = profile.aspiration.careerPriorities ?? [];
+  if (!priorities.length) return 0.5;
+  if (priorities.includes("high_salary")) {
+    if (career.earningBand === "high") return 0.9;
+    if (career.earningBand === "medium") return 0.65;
+    if (career.earningBand === "low") return 0.35;
+  }
+  if (priorities.includes("job_security")) {
+    if (career.riskLevel === "stable") return 0.9;
+    if (career.riskLevel === "moderate") return 0.6;
+    if (career.riskLevel === "entrepreneurial") return 0.3;
+  }
+  if (priorities.includes("government_service")) {
+    if (career.domainId === "government") return 0.95;
+    const govCompatible = ["law", "humanities", "engineering", "commerce_finance"];
+    if (govCompatible.includes(career.domainId)) return 0.65;
+    return 0.35;
+  }
+  return 0.5; // passion / unknown priority — neutral
+}
+
+function aspirationFit(career: Career, profile: StudentProfile): number {
+  const gs = goalScore(career, profile);
+  const ps = priorityScore(career, profile);
+  const hasPriority = (profile.aspiration.careerPriorities?.length ?? 0) > 0;
+  const hasGoal = !!profile.aspiration.goalOrientation;
+  if (!hasGoal && !hasPriority) return 0.5;
+  if (!hasGoal) return ps;
+  if (!hasPriority) return gs;
+  // Both present: goal drives 65%, priority drives 35%
+  return gs * 0.65 + ps * 0.35;
+}
+
 function constraintFit(career: Career, profile: StudentProfile): number {
   let score = 0.7;
+  // Penalties
   if (profile.constraints.timeToIncomeNeed === "urgent" && (career.minYearsToEarn ?? 5) > 4) score -= 0.3;
-  if (profile.constraints.budgetBand === "low" && career.higherStudyRequired === "mandatory") score -= 0.15;
+  if (profile.constraints.budgetBand === "low" && career.higherStudyRequired === "mandatory") score -= 0.2;
+  // Boosts — good constraint matches
+  if ((profile.constraints.budgetBand === "high" || profile.constraints.budgetBand === "no_constraint") && career.higherStudyRequired === "mandatory") score += 0.15;
+  if (profile.constraints.locationPref === "abroad" && (career.jobMarketIndia === "strong" || career.earningBand === "high")) score += 0.1;
+  if (profile.constraints.locationPref === "india" && career.jobMarketIndia === "strong") score += 0.08;
   return clamp(score);
 }
 

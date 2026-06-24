@@ -122,11 +122,13 @@ export async function POST(req: NextRequest) {
     const fp = fresh as Partial<StudentProfile> | null;
 
     const stream = fp?.academic?.stream;
-    const topInterests = Object.entries(fp?.interests ?? {})
+    const sortedInterests = Object.entries(fp?.interests ?? {})
       .filter(([, v]) => (v ?? 0) >= 0.3)
-      .sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))
-      .slice(0, 3)
-      .map(([k]) => INTEREST_LABELS[k] ?? k);
+      .sort(([, a], [, b]) => (b ?? 0) - (a ?? 0));
+    const topInterests = sortedInterests.slice(0, 3).map(([k]) => INTEREST_LABELS[k] ?? k);
+    // Restrict follow-up choices to the student's top 2 clusters so cross-cluster
+    // options can't dilute a strong primary interest signal.
+    const allowedClusters = sortedInterests.slice(0, 2).map(([k]) => k);
     const freeTexts = Array.isArray(fresh?._selectedInterests)
       ? (fresh!._selectedInterests as string[]).filter((s) => typeof s === "string" && !s.includes("::"))
       : [];
@@ -139,6 +141,7 @@ export async function POST(req: NextRequest) {
         statedCareer: fp?.aspiration?.statedCareer || undefined,
         topInterests: topInterests.length ? topInterests : undefined,
         freeTexts: freeTexts.length ? freeTexts : undefined,
+        allowedClusters: allowedClusters.length ? allowedClusters : undefined,
       });
       void db.from("conversations").insert({
         session_id: sessionId, role: "assistant", stage: "followup", content: q.content, model: "followup",

@@ -27,7 +27,7 @@ export const PERSONALITY_TRAITS = [
 ] as const;
 export type PersonalityTrait = (typeof PERSONALITY_TRAITS)[number];
 
-export const GOAL_ORIENTATIONS = ["job_soon", "higher_study", "business", "government"] as const;
+export const GOAL_ORIENTATIONS = ["job_soon", "higher_study", "entrance_exams", "business", "government"] as const;
 export type GoalOrientation = (typeof GOAL_ORIENTATIONS)[number];
 
 export const BUDGET_BANDS = ["low", "medium", "high", "no_constraint"] as const;

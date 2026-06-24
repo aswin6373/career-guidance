@@ -7,8 +7,6 @@ import { Star, CheckCircle2, DollarSign, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RecommendationResult } from "@/types/recommendation";
 
-// ── Feedback widget ───────────────────────────────────────────────────────────
-
 type Reaction = "love" | "good" | "okay" | "poor";
 
 const REACTIONS: { id: Reaction; emoji: string; label: string }[] = [
@@ -19,10 +17,10 @@ const REACTIONS: { id: Reaction; emoji: string; label: string }[] = [
 ];
 
 function FeedbackWidget({ sessionId }: { sessionId: string }) {
-  const [reaction, setReaction]   = useState<Reaction | null>(null);
-  const [message, setMessage]     = useState("");
+  const [reaction, setReaction] = useState<Reaction | null>(null);
+  const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading]     = useState(false);
+  const [loading, setLoading] = useState(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -47,71 +45,45 @@ function FeedbackWidget({ sessionId }: { sessionId: string }) {
 
   if (submitted) {
     return (
-      <div className="mt-4 rounded-2xl border bg-green-50 border-green-200 px-5 py-6 text-center">
+      <div className="mt-4 clay-card px-5 py-6 text-center" style={{ background: "linear-gradient(135deg, #F0FDF4, #DCFCE7)", border: "1px solid rgba(74,222,128,0.2)" }}>
         <p className="text-2xl mb-2">🙏</p>
-        <p className="text-sm font-semibold text-green-800">Thank you for your feedback!</p>
-        <p className="mt-1 text-xs text-green-700">It helps us improve PathFinder for students like you.</p>
+        <p className="text-sm font-bold" style={{ color: "#166534" }}>Thank you for your feedback!</p>
+        <p className="mt-1 text-xs" style={{ color: "#15803D" }}>It helps us improve PathFinder for students like you.</p>
       </div>
     );
   }
 
   return (
-    <div className="mt-4 rounded-2xl border bg-white px-5 py-6">
-      <p className="text-sm font-semibold text-foreground text-center">How was your experience?</p>
-      <p className="mt-0.5 text-xs text-muted-foreground text-center">Your feedback helps us improve PathFinder</p>
-
-      {/* Reaction buttons */}
-      <div className="mt-4 flex items-center justify-center gap-3 sm:gap-5">
+    <div className="mt-4 clay-card px-5 py-6">
+      <p className="text-sm font-bold text-center" style={{ color: "#111827" }}>How was your experience?</p>
+      <p className="mt-0.5 text-xs text-center" style={{ color: "#9CA3AF" }}>Your feedback helps us improve PathFinder</p>
+      <div className="mt-4 flex items-center justify-center gap-3 sm:gap-4">
         {REACTIONS.map((r) => (
-          <button
-            key={r.id}
-            onClick={() => {
-              setReaction(r.id);
-              setTimeout(() => textRef.current?.focus(), 50);
+          <button key={r.id} onClick={() => { setReaction(r.id); setTimeout(() => textRef.current?.focus(), 50); }}
+            className="flex flex-col items-center gap-1.5 px-3 py-2.5 text-center transition-all focus:outline-none"
+            style={{
+              borderRadius: 16, border: reaction === r.id ? "1.5px solid #1E6FFF" : "1.5px solid rgba(30,111,255,0.1)",
+              background: reaction === r.id ? "linear-gradient(135deg, #EEF4FF, #D9E9FF)" : "#F4F6FB",
+              transform: reaction === r.id ? "scale(1.06)" : "scale(1)",
+              minWidth: 60,
             }}
-            className={cn(
-              "flex flex-col items-center gap-1.5 rounded-xl px-3 py-2.5 transition-all",
-              "border text-center min-w-[60px] sm:min-w-[72px]",
-              reaction === r.id
-                ? "border-primary bg-primary/5 shadow-sm scale-105"
-                : "border-border hover:border-primary/40 hover:bg-muted/50"
-            )}
           >
-            <span className="text-2xl sm:text-3xl leading-none">{r.emoji}</span>
-            <span className={cn(
-              "text-[10px] sm:text-xs font-medium",
-              reaction === r.id ? "text-primary" : "text-muted-foreground"
-            )}>
-              {r.label}
-            </span>
+            <span className="text-2xl leading-none">{r.emoji}</span>
+            <span className="text-[10px] font-semibold" style={{ color: reaction === r.id ? "#1E6FFF" : "#9CA3AF" }}>{r.label}</span>
           </button>
         ))}
       </div>
-
-      {/* Text box — slides in after selecting a reaction */}
-      <div className={cn(
-        "overflow-hidden transition-all duration-200",
-        reaction ? "max-h-48 opacity-100 mt-4" : "max-h-0 opacity-0"
-      )}>
-        <textarea
-          ref={textRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Anything we should improve? (optional)"
-          maxLength={1000}
-          rows={3}
-          className="w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+      <div className={cn("overflow-hidden transition-all duration-200", reaction ? "max-h-48 opacity-100 mt-4" : "max-h-0 opacity-0")}>
+        <textarea ref={textRef} value={message} onChange={(e) => setMessage(e.target.value)}
+          placeholder="Anything we should improve? (optional)" maxLength={1000} rows={3}
+          className="w-full resize-none px-3 py-2.5 text-sm outline-none placeholder:text-gray-400 focus:ring-0"
+          style={{ borderRadius: 14, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
+          onFocus={(e) => { e.target.style.borderColor = "#1E6FFF"; e.target.style.background = "#fff"; }}
+          onBlur={(e) => { e.target.style.borderColor = "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; }}
         />
-        <button
-          onClick={handleSubmit}
-          disabled={!reaction || loading}
-          className={cn(
-            "mt-2 w-full rounded-lg py-2.5 text-sm font-medium transition-colors",
-            reaction && !loading
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "bg-muted text-muted-foreground cursor-not-allowed"
-          )}
-        >
+        <button onClick={handleSubmit} disabled={!reaction || loading}
+          className={cn("mt-2 w-full clay-btn text-sm", !reaction || loading ? "opacity-40 cursor-not-allowed" : "")}
+          style={{ height: 44 }}>
           {loading ? "Sending…" : "Send feedback"}
         </button>
       </div>
@@ -126,11 +98,9 @@ const RANK_STYLES = [
 ];
 
 function confidenceLevel(c: number) {
-  if (c >= 0.75)
-    return { label: "High confidence", cls: "bg-green-50 text-green-800 border-green-200" };
-  if (c >= 0.5)
-    return { label: "Good confidence", cls: "bg-amber-50 text-amber-800 border-amber-200" };
-  return { label: "Moderate confidence", cls: "bg-orange-50 text-orange-800 border-orange-200" };
+  if (c >= 0.75) return { label: "High confidence", bg: "rgba(74,222,128,0.12)", color: "#166534", border: "rgba(74,222,128,0.25)" };
+  if (c >= 0.5)  return { label: "Good confidence", bg: "rgba(245,158,11,0.1)",  color: "#92400E", border: "rgba(245,158,11,0.2)" };
+  return               { label: "Moderate confidence", bg: "rgba(249,115,22,0.1)", color: "#9A3412", border: "rgba(249,115,22,0.2)" };
 }
 
 function ResultInner() {
@@ -153,63 +123,59 @@ function ResultInner() {
   if (!sessionId) return (
     <Center>
       <div className="space-y-4 text-center">
-        <p className="text-base font-medium text-foreground">No session found.</p>
-        <p className="text-sm text-muted-foreground">Please complete the conversation first.</p>
-        <Link href="/" className="inline-block text-sm text-primary hover:underline">← Start over</Link>
+        <p className="text-base font-bold" style={{ color: "#111827" }}>No session found.</p>
+        <p className="text-sm" style={{ color: "#9CA3AF" }}>Please complete the conversation first.</p>
+        <Link href="/" className="inline-block text-sm" style={{ color: "#1E6FFF" }}>← Start over</Link>
       </div>
     </Center>
   );
-  if (error) return <Center className="text-destructive">{error}</Center>;
-  if (!data) {
-    return (
-      <Center>
-        <div className="space-y-3 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground">Building your career report…</p>
-        </div>
-      </Center>
-    );
-  }
+  if (error) return <Center><p style={{ color: "#EF4444" }}>{error}</p></Center>;
+  if (!data) return (
+    <Center>
+      <div className="space-y-3 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full" style={{ border: "2.5px solid #1E6FFF", borderTopColor: "transparent" }} />
+        <p className="text-sm" style={{ color: "#9CA3AF" }}>Building your career report…</p>
+      </div>
+    </Center>
+  );
 
   const conf = confidenceLevel(data.overallConfidence);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ background: "#F8F3EC" }}>
       {/* Nav */}
-      <header className="border-b bg-white/90 backdrop-blur-sm">
+      <header className="sticky top-0 z-50" style={{ background: "rgba(248,243,236,0.9)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(30,111,255,0.07)" }}>
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-primary" />
-            <span className="text-sm font-semibold">PathFinder</span>
+            <div style={{ width: 30, height: 30, borderRadius: 10, background: "linear-gradient(145deg, #3B82FF, #1E6FFF)", boxShadow: "0 3px 0 rgba(6,26,138,0.4), 0 6px 16px rgba(30,111,255,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: 12, fontFamily: "var(--font-heading)" }}>P</span>
+            </div>
+            <span className="text-sm font-black tracking-tight" style={{ color: "#111827", fontFamily: "var(--font-heading)" }}>PathFinder</span>
           </Link>
-          <span className="text-xs text-muted-foreground">Step 3 of 3</span>
+          <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: "rgba(30,111,255,0.09)", color: "#1E6FFF" }}>Step 3 of 3</span>
         </div>
       </header>
 
-      {/* Journey progress */}
-      <div className="border-b bg-white">
-        <div className="mx-auto max-w-3xl px-6 py-3">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Your details</span>
-            <div className="h-px flex-1 bg-primary" />
-            <span className="text-muted-foreground">Conversation</span>
-            <div className="h-px flex-1 bg-primary" />
-            <span className="font-semibold text-primary">Your report</span>
-          </div>
+      {/* Journey breadcrumb */}
+      <div className="px-6 py-3" style={{ borderBottom: "1px solid rgba(30,111,255,0.06)", background: "rgba(255,255,255,0.5)" }}>
+        <div className="mx-auto max-w-3xl flex items-center gap-2 text-xs">
+          <span style={{ color: "#9CA3AF" }}>Your details</span>
+          <div className="h-px flex-1" style={{ background: "#1E6FFF" }} />
+          <span style={{ color: "#9CA3AF" }}>Conversation</span>
+          <div className="h-px flex-1" style={{ background: "#1E6FFF" }} />
+          <span className="font-bold" style={{ color: "#1E6FFF" }}>Your report</span>
         </div>
       </div>
 
       <main className="mx-auto max-w-3xl px-6 py-10">
-        {/* Report header */}
+        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">Your career report is ready</h1>
+          <h1 className="text-2xl font-black" style={{ color: "#111827" }}>Your career report is ready</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${conf.cls}`}
-            >
+            <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold" style={{ background: conf.bg, color: conf.color, border: `1px solid ${conf.border}` }}>
               {conf.label} · {Math.round(data.overallConfidence * 100)}%
             </span>
-            <span className="text-xs text-muted-foreground">KB v{data.kbVersion}</span>
+            <span className="text-xs" style={{ color: "#9CA3AF" }}>KB v{data.kbVersion}</span>
           </div>
         </div>
 
@@ -348,36 +314,22 @@ function ResultInner() {
           })()}
         </div>
 
-        {/* Caveats */}
         {(data.caveats ?? []).length > 0 && (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm">
-            <p className="font-semibold text-amber-900">Please keep in mind</p>
-            <ul className="ml-4 mt-2 list-disc space-y-1 text-amber-800">
-              {(data.caveats ?? []).map((cv, i) => (
-                <li key={i}>{cv}</li>
-              ))}
+          <div className="mt-6 rounded-2xl px-5 py-4 text-sm" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)" }}>
+            <p className="font-bold" style={{ color: "#92400E" }}>Please keep in mind</p>
+            <ul className="ml-4 mt-2 list-disc space-y-1" style={{ color: "#B45309" }}>
+              {(data.caveats ?? []).map((cv, i) => <li key={i}>{cv}</li>)}
             </ul>
           </div>
         )}
 
-        {/* Next steps */}
-        <div className="mt-8 rounded-2xl border bg-white p-5 text-center">
-          <p className="text-sm font-medium text-foreground">What to do next?</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Share this report with your parents, teachers, or school counsellor. Use it as a starting
-            point for deeper research and conversations — not as a final decision.
-          </p>
-          <Link
-            href="/"
-            className="mt-4 inline-flex h-9 items-center justify-center rounded-lg border px-4 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-          >
-            ← Back to home
-          </Link>
+        <div className="mt-8 clay-card p-5 text-center">
+          <p className="text-sm font-bold" style={{ color: "#111827" }}>What to do next?</p>
+          <p className="mt-1 text-sm" style={{ color: "#6B7280" }}>Share this report with your parents, teachers, or school counsellor. Use it as a starting point for deeper research and conversations — not as a final decision.</p>
+          <Link href="/" className="mt-4 inline-flex h-10 items-center justify-center rounded-xl border px-5 text-sm font-semibold transition-colors" style={{ borderColor: "rgba(30,111,255,0.2)", color: "#6B7280" }}>← Back to home</Link>
         </div>
 
-        {/* Feedback */}
         {sessionId && <FeedbackWidget sessionId={sessionId} />}
-
         <div className="mt-10 pb-8" />
       </main>
     </div>
@@ -386,12 +338,7 @@ function ResultInner() {
 
 function Center({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <main
-      className={cn(
-        "flex h-screen items-center justify-center px-6 text-center text-muted-foreground",
-        className
-      )}
-    >
+    <main className={cn("flex h-screen items-center justify-center px-6 text-center", className)} style={{ background: "#F8F3EC", color: "#9CA3AF" }}>
       {children}
     </main>
   );

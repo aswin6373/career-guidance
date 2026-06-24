@@ -806,7 +806,7 @@ export default function StartPage() {
       const next = new Set(prev);
       if (next.has(value)) {
         next.delete(value);
-      } else if (next.size < 3) {
+      } else {
         next.add(value);
       }
       return next;
@@ -819,8 +819,8 @@ export default function StartPage() {
       return; // subjects need explicit Continue
     }
     if (qIndex === 3) {
-      toggleInterest(value);
-      return; // interests need explicit Continue
+      void postAnswer({ value, isChoice: true });
+      return;
     }
     if (qIndex === 4) {
       if (value === "repeat_year") {
@@ -1173,7 +1173,7 @@ export default function StartPage() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={iconToShow} alt="" width={28} height={28} className="shrink-0" />
                       )}
-                      {(qIndex === 2 || qIndex === 3) && (
+                      {qIndex === 2 && (
                         <span
                           className="shrink-0 flex items-center justify-center"
                           style={{

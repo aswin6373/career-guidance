@@ -738,6 +738,7 @@ export default function StartPage() {
       if (qIndex < TOTAL_QUESTIONS - 1) {
         setQIndex((i) => i + 1);
         setSelectedSubjects(new Set());
+        setSelectedInterests(new Set());
         setTextVal("");
         setInfoMessage(null);
         setVisible(true);
@@ -805,7 +806,7 @@ export default function StartPage() {
       const next = new Set(prev);
       if (next.has(value)) {
         next.delete(value);
-      } else {
+      } else if (next.size < 3) {
         next.add(value);
       }
       return next;

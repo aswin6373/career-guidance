@@ -13,7 +13,7 @@ const STREAM_LABELS: Record<string, string> = {
 
 // Bump when the question-generation prompt changes so previously cached items
 // (stored per session) are regenerated instead of served stale.
-export const ASSESSMENT_GEN_VERSION = 2;
+export const ASSESSMENT_GEN_VERSION = 4;
 
 export type AiItem = {
   id: string;
@@ -26,7 +26,10 @@ export type AiItem = {
   choices: { id: string; text: string; interestCluster?: string }[];
 };
 
-export async function generateAiAssessmentItems(profile: Partial<StudentProfile> | null): Promise<AiItem[]> {
+export async function generateAiAssessmentItems(
+  profile: Partial<StudentProfile> | null,
+  allowedClusters?: string[],
+): Promise<AiItem[]> {
   const stream = profile?.academic?.stream;
   const streamLabel = stream ? (STREAM_LABELS[stream] ?? stream) : "Plus Two";
   const subjects = profile?.academic?.strongSubjects ?? [];
@@ -44,6 +47,10 @@ export async function generateAiAssessmentItems(profile: Partial<StudentProfile>
     government: "prepare for govt exams",
   };
 
+  const lockedClusters = allowedClusters?.length
+    ? allowedClusters.join(", ")
+    : "health_medicine, technology_coding, business_money, science_research, design_visual, helping_teaching, law_justice, building_engineering, media_communication, nature_agriculture, defence_adventure, numbers_analysis";
+
   const messages: ChatMessage[] = [
     {
       role: "system",
@@ -55,7 +62,7 @@ export async function generateAiAssessmentItems(profile: Partial<StudentProfile>
     {
       role: "user",
       content:
-        `Generate exactly 10 multiple-choice questions to assess this Kerala Plus Two student.\n\n` +
+        `Generate exactly 7 multiple-choice questions to assess this Kerala Plus Two student.\n\n` +
         `Student profile:\n` +
         `- Stream: ${streamLabel}\n` +
         `- Strong subjects: ${subjects.length ? subjects.join(", ") : "not specified"}\n` +
@@ -63,52 +70,47 @@ export async function generateAiAssessmentItems(profile: Partial<StudentProfile>
         `- Goal after Plus Two: ${goalLabels[goal] || goal || "not specified"}\n` +
         (priorities.length ? `- Career priorities: ${priorities.join(", ")}\n` : ``) +
         `\n` +
-        `LANGUAGE: Use simple, everyday English for a 16-year-old. Short sentences, common words, no jargon.\n\n` +
-        `SECTION 1 — Aptitude (ai_1 through ai_5): these test real ability and are SCORED.\n` +
-        `- One question per dimension: numerical, logical, verbal, spatial, scientific\n` +
-        `- CRITICAL: each question must be fully solvable from the words alone. Never refer to a\n` +
-        `  picture, diagram, chart, map, or "the figure above" — there are no images.\n` +
+        `LANGUAGE: Simple everyday English for a 16-year-old. Short sentences, common words, no jargon.\n\n` +
+        `SECTION 1 — Aptitude (ai_1, ai_2, ai_3): test real ability, SCORED right/wrong.\n` +
+        `- ai_1: numerical — a real calculation (percentage, ratio, average, simple money/marks problem).\n` +
+        `- ai_2: logical — a self-contained reasoning or number/letter sequence puzzle.\n` +
+        `- ai_3: scientific — apply one basic science fact from their stream to a simple everyday situation.\n` +
+        `- CRITICAL: every question must be fully solvable from words alone. Never refer to a picture,\n` +
+        `  diagram, chart, or "the figure above" — there are no images.\n` +
         `- Exactly ONE choice is correct; the other three must be clearly wrong. Include "correctId".\n` +
-        `- Keep numbers small and the wording simple. Guidance per dimension:\n` +
-        `  • numerical — a real calculation (percentage, ratio, average, simple money/marks problem).\n` +
-        `  • logical — a self-contained reasoning or number/letter sequence puzzle.\n` +
-        `  • verbal — meaning of a word, odd-one-out, or analogy, with the needed words in the question.\n` +
-        `  • spatial — describe the shape fully in words (paper folding, cube faces, rotation) so it\n` +
-        `    can be answered without seeing anything.\n` +
-        `  • scientific — apply one basic science fact from their stream to a simple everyday situation.\n` +
-        `- Personalise the wording/context to their stream and subjects, but the correct answer must\n` +
-        `  depend only on the maths/logic/science — not on opinion.\n` +
-        `- Place the correct answer in any position (a, b, c, or d) — vary it across questions.\n` +
-        `- Aptitude choice format: { "id": "a", "text": "..." }  (no interestCluster)\n\n` +
-        `SECTION 2 — Career preference (ai_6 through ai_10): NOT scored — these refine interests.\n` +
-        `- Each of the 5 questions must use a DIFFERENT, specific framing. Do NOT reuse the same\n` +
-        `  wording. Vary it, for example: "Which project would you happily spend a weekend on?",\n` +
-        `  "Which problem would you most enjoy solving?", "Which class would you never skip?",\n` +
-        `  "Which task would feel easiest to stick with for hours?". Write your own — keep it fresh.\n` +
-        `- Each choice is a COMPLETE, concrete day-to-day activity (about 4–9 words) — something you\n` +
-        `  DO, not a job title. All 4 choices must answer the same question and be clearly different.\n` +
-        `- Make the activities vivid and tied to the student's stream and the interests they showed,\n` +
-        `  but also include 1–2 options from other fields so we can discover new directions.\n` +
-        `- dimension MUST be exactly "interest_personality" for all 5\n` +
-        `- Each choice MUST include "interestCluster" — one of these 12 IDs ONLY:\n` +
-        `  health_medicine, technology_coding, business_money, science_research,\n` +
-        `  design_visual, helping_teaching, law_justice, building_engineering,\n` +
-        `  media_communication, nature_agriculture, defence_adventure, numbers_analysis\n` +
-        `- Vary the clusters across the 5 questions; include clusters from their interests but also alternatives\n` +
-        `- Preference choice format: { "id": "a", "text": "...", "interestCluster": "health_medicine" }\n\n` +
-        `Return this exact JSON shape (no markdown, no extra keys). Use your OWN question text, not these words:\n` +
+        `- Keep numbers small and wording simple. Personalise context to their stream and subjects.\n` +
+        `- Place the correct answer in any position (a/b/c/d) — vary it across the 3 questions.\n` +
+        `- Aptitude choice format: { "id": "a", "text": "..." }  — no interestCluster field.\n\n` +
+        `SECTION 2 — Interest confirmation (ai_4, ai_5, ai_6, ai_7): NOT scored — confirm primary interest.\n` +
+        `- These 4 questions confirm the student's main direction. Every choice value MUST be one of:\n` +
+        `  ${lockedClusters}\n` +
+        `- Each question must use a DIFFERENT framing. Examples (write your own — do not copy these):\n` +
+        `  "Which project would you happily spend a weekend on?"\n` +
+        `  "Which problem would you most enjoy solving?"\n` +
+        `  "Which class would you never skip?"\n` +
+        `  "Which task would feel easiest to stick with for hours?"\n` +
+        `- Each choice is a COMPLETE concrete activity (4–9 words) — something you DO, not a job title.\n` +
+        `- All 4 choices per question must answer the same question and be clearly different from each other.\n` +
+        `- dimension MUST be exactly "interest_personality" for all 4.\n` +
+        `- Choice format: { "id": "a", "text": "...", "interestCluster": "<one of the locked clusters above>" }\n\n` +
+        `Return this exact JSON shape (no markdown, no extra keys):\n` +
         `{ "items": [\n` +
-        `  { "id": "ai_1", "dimension": "numerical", "questionText": "<your numerical question>", "correctId": "b", "choices": [{ "id": "a", "text": "..." }, { "id": "b", "text": "..." }, { "id": "c", "text": "..." }, { "id": "d", "text": "..." }] },\n` +
-        `  { "id": "ai_6", "dimension": "interest_personality", "questionText": "<your own varied question>", "choices": [{ "id": "a", "text": "...", "interestCluster": "health_medicine" }, { "id": "b", "text": "...", "interestCluster": "technology_coding" }, { "id": "c", "text": "...", "interestCluster": "science_research" }, { "id": "d", "text": "...", "interestCluster": "business_money" }] }\n` +
+        `  { "id": "ai_1", "dimension": "numerical", "questionText": "...", "correctId": "b", "choices": [{ "id": "a", "text": "..." }, ...] },\n` +
+        `  { "id": "ai_2", "dimension": "logical", "questionText": "...", "correctId": "a", "choices": [...] },\n` +
+        `  { "id": "ai_3", "dimension": "scientific", "questionText": "...", "correctId": "c", "choices": [...] },\n` +
+        `  { "id": "ai_4", "dimension": "interest_personality", "questionText": "...", "choices": [{ "id": "a", "text": "...", "interestCluster": "health_medicine" }, ...] },\n` +
+        `  { "id": "ai_5", "dimension": "interest_personality", "questionText": "...", "choices": [...] },\n` +
+        `  { "id": "ai_6", "dimension": "interest_personality", "questionText": "...", "choices": [...] },\n` +
+        `  { "id": "ai_7", "dimension": "interest_personality", "questionText": "...", "choices": [...] }\n` +
         `] }`,
     },
   ];
 
   const { data } = await extractJson<{ items: AiItem[] }>(messages, { temperature: 0.7 });
   const items = data?.items;
-  if (!Array.isArray(items) || items.length < 8) throw new Error("AI returned too few items");
+  if (!Array.isArray(items) || items.length < 6) throw new Error("AI returned too few items");
 
-  return items.slice(0, 10).map((item, i) => ({ ...item, id: `ai_${i + 1}` }));
+  return items.slice(0, 7).map((item, i) => ({ ...item, id: `ai_${i + 1}` }));
 }
 
 function shuffleArray<T>(arr: T[]): T[] {

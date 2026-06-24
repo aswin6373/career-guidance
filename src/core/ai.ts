@@ -511,6 +511,46 @@ export async function followUpQuestion(params: {
   return { content: question, choices: choices.slice(0, 4), model };
 }
 
+export async function generateQ3Choices(params: {
+  stream: string;
+  subjects: string[];
+}): Promise<{ question: string; choices: AIChoice[] }> {
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content:
+        "You are a career counsellor for Plus Two students in Kerala, India. " +
+        "Return only valid JSON — no extra text.",
+    },
+    {
+      role: "user",
+      content:
+        `A student is in ${params.stream} stream. Their favourite subjects or interests are: ${params.subjects.join(", ")}.\n\n` +
+        `Write ONE friendly question (10–18 words) asking what kind of work or activity they would enjoy most, ` +
+        `based on those subjects. Then provide EXACTLY 6 choices.\n\n` +
+        `RULES FOR CHOICES (very important):\n` +
+        `- Each choice MUST be a concrete activity — something you DO, described as a short phrase (5–10 words).\n` +
+        `- NEVER write a job title (e.g. NOT "Journalist" or "News Anchor" — instead write "Reporting stories and writing news articles").\n` +
+        `- NEVER write a one-word or two-word answer — always a full activity phrase.\n` +
+        `- Good examples: "Arguing cases in court", "Investigating social injustice cases", "Writing and presenting news reports".\n` +
+        `- All 6 choices must directly answer the same question and be clearly different from each other.\n` +
+        `- All choices must be realistic for the student's stream and subjects.\n` +
+        `- Each choice "value" MUST be exactly one of these interest cluster IDs:\n` +
+        `  ${INTEREST_CLUSTERS.join(", ")}\n` +
+        `- Do NOT use any value outside that list.\n\n` +
+        `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "health_medicine" }, ... ] }`,
+    },
+  ];
+
+  const { data } = await extractJson<{ question: string; choices: AIChoice[] }>(messages, { temperature: 0.6 });
+  const question = data?.question?.trim() ?? "What kind of work or activity would you enjoy the most?";
+  const choices = Array.isArray(data?.choices)
+    ? data!.choices.filter((c) => c?.label && INTEREST_CLUSTERS.includes(c.value as typeof INTEREST_CLUSTERS[number]))
+    : [];
+  if (choices.length < 2) throw new Error("Q3 AI generation returned too few valid choices");
+  return { question, choices: choices.slice(0, 6) };
+}
+
 export async function extractProfileDelta(params: {
   reply: string;
   stage?: string;

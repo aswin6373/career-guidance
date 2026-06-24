@@ -15,7 +15,7 @@ import type { AssessmentItemPublic } from "@/types/assessment";
 import type { StudentProfile, InterestCluster } from "@/types/profile";
 import { APTITUDES, INTEREST_CLUSTERS } from "@/types/profile";
 
-const INTEREST_ITEMS_TO_SHOW = 5;
+const INTEREST_ITEMS_TO_SHOW = 4;
 
 function interestRelevanceScore(tags: InterestCluster[], capturedClusters: Set<InterestCluster>): number {
   const overlap = tags.filter((t) => capturedClusters.has(t)).length;
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get("session");
 
   if (!sessionId) {
-    return NextResponse.json({ items: staticFallback(null), total: 10 });
+    return NextResponse.json({ items: staticFallback(null), total: 7 });
   }
 
   const ipHash = await clientIpHash(req);
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
     // regenerates instead of serving stale questions.
     const cached = profileRaw?._aiAssessmentItems as AiItem[] | undefined;
     const cachedVersion = profileRaw?._aiAssessmentVersion as number | undefined;
-    if (Array.isArray(cached) && cached.length >= 8 && cachedVersion === ASSESSMENT_GEN_VERSION) {
+    if (Array.isArray(cached) && cached.length >= 6 && cachedVersion === ASSESSMENT_GEN_VERSION) {
       return NextResponse.json({ items: toPublicItems(cached), total: cached.length });
     }
 
@@ -88,8 +88,15 @@ export async function GET(req: NextRequest) {
     const limited = await enforceRateLimit(limiters.recommend, "assessment-gen", [sessionId, ipHash]);
     if (limited) return limited;
 
+    // Extract top 2 interest clusters to lock the confirmation questions.
+    const topClusters = Object.entries(studentProfile?.interests ?? {})
+      .filter(([, v]) => (v ?? 0) >= 0.2)
+      .sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))
+      .slice(0, 2)
+      .map(([k]) => k);
+
     // Not yet cached — generate now (fallback path for sessions without pre-generation).
-    const aiItems = await generateAiAssessmentItems(studentProfile);
+    const aiItems = await generateAiAssessmentItems(studentProfile, topClusters.length ? topClusters : undefined);
     await db.from("student_profiles").upsert(
       {
         session_id: sessionId,
@@ -108,9 +115,9 @@ export async function GET(req: NextRequest) {
         .select("profile")
         .eq("session_id", sessionId)
         .maybeSingle();
-      return NextResponse.json({ items: staticFallback(row?.profile as Partial<StudentProfile> | null), total: 10 });
+      return NextResponse.json({ items: staticFallback(row?.profile as Partial<StudentProfile> | null), total: 7 });
     } catch {
-      return NextResponse.json({ items: staticFallback(null), total: 10 });
+      return NextResponse.json({ items: staticFallback(null), total: 7 });
     }
   }
 }
@@ -153,7 +160,7 @@ export async function POST(req: NextRequest) {
       // correct = 100, wrong = 0. Falls back to 50 if correctId missing (shouldn't happen).
       const isAptitude = (APTITUDES as readonly string[]).includes(aiItem.dimension);
       const score = isAptitude
-        ? (aiItem.correctId ? (choiceId === aiItem.correctId ? 100 : 0) : 50)
+        ? (aiItem.correctId ? (choiceId === aiItem.correctId ? 100 : 50) : 50)
         : null;
 
       await db.from("assessment_responses").delete().eq("session_id", sessionId).eq("item_id", itemId);

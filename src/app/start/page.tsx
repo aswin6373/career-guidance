@@ -481,17 +481,17 @@ const PRIORITY_ICONS: Record<string, string> = {
   passion: i8("like"), government_service: i8("bank"),
 };
 const BUDGET_ICONS: Record<string, string> = {
-  no_constraint: i8("money-bag"), medium: i8("wallet"), low: i8("piggy-bank"),
+  no_constraint: i8("money-bag"), medium: i8("wallet"), low: i8("money-box"),
 };
 const LOCATION_ICONS: Record<string, string> = {
-  kerala: i8("home"), india: i8("india"), abroad: i8("airplane-take-off"),
+  kerala: i8("home"), india: i8("globe"), abroad: i8("airplane-take-off"),
 };
 const FAMILY_ICONS: Record<string, string> = {
-  none: i8("user"), some_preference: i8("conference-call"), family_preference: i8("family"),
+  none: i8("user-male-circle"), some_preference: i8("conference-call"), family_preference: i8("people"),
 };
 const WORKSTYLE_ICONS: Record<string, string> = {
   social: i8("conference-call"), analytical_solo: i8("brain"),
-  practical_outdoor: i8("hand-tools"), mixed: i8("puzzle"),
+  practical_outdoor: i8("maintenance"), mixed: i8("puzzle"),
 };
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -1056,7 +1056,7 @@ export default function StartPage() {
         style={{ background: "#F8F3EC" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://img.icons8.com/3d-fluency/96/sad.png" alt="" width={64} height={64} />
+        <img src="https://img.icons8.com/3d-fluency/96/disappointed.png" alt="" width={64} height={64} />
         <div className="clay-card w-full max-w-xs p-6">
           <p className="mb-4 text-sm font-semibold" style={{ color: "#374151" }}>
             Could not start a session. Please refresh the page.
@@ -1503,7 +1503,7 @@ export default function StartPage() {
 
         {/* ── Mini-rec result ── */}
         {phase === "result" && (
-          <div className="flex flex-1 flex-col gap-6">
+          <div className="flex flex-1 flex-col gap-6 pb-32">
             {recError || !miniRec ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
                 <p className="text-sm" style={{ color: "#6B7280" }}>
@@ -1654,73 +1654,21 @@ export default function StartPage() {
                   </div>
                 </div>
 
-                {/* Hand-written styled text and arrow pointing to CTA */}
-                <div className="flex flex-col items-center justify-center mt-2 mb-1">
-                  <span className="text-[#1E6FFF] font-extrabold italic text-sm tracking-wide">
-                    Get more accurate results!
-                  </span>
-                  <div className="animate-bounce mt-1">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M19 14L12 21L5 14M12 3V20" stroke="#1E6FFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Unified CTA Block */}
-                <button
-                  onClick={() => router.push(`/deeper?session=${sessionId}`)}
-                  className="w-full relative overflow-hidden flex flex-col items-center justify-center p-5 text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus:outline-none cta-glow-pulse"
-                  style={{
-                    borderRadius: 24,
-                    background: "linear-gradient(135deg, #3B82FF 0%, #1E6FFF 100%)",
-                    border: "none",
-                  }}
-                >
-                  <div className="flex items-center gap-4 w-full">
-                    {/* Floating 3D Rocket */}
-                    <div className="shrink-0">
-                      <img src="https://img.icons8.com/3d-fluency/96/rocket.png" alt="" width={56} height={56} className="animate-pulse" />
-                    </div>
-
-                    <div className="flex-1">
-                      <h4 className="text-white text-base font-black flex items-center gap-1">
-                        Continue for more accurate results →
-                      </h4>
-                      
-                      {/* Sub-badges row inside CTA */}
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold text-white bg-white/20 backdrop-blur-sm">
-                          <img src="https://img.icons8.com/3d-fluency/48/clock.png" alt="" width={10} height={10} />
-                          Takes about 5 mins
-                        </span>
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold text-white bg-white/20 backdrop-blur-sm">
-                          <img src="https://img.icons8.com/3d-fluency/48/present.png" alt="" width={10} height={10} />
-                          100% Free
-                        </span>
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold text-white bg-white/20 backdrop-blur-sm">
-                          <img src="https://img.icons8.com/3d-fluency/48/user.png" alt="" width={10} height={10} />
-                          No account needed
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Bottom Trust Badges */}
-                <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t border-dashed border-gray-300/40">
+                {/* Inline trust line — the actual Continue lives in the sticky bar below */}
+                <div className="flex items-center justify-center gap-3 flex-wrap">
                   <span className="flex items-center gap-1 text-[11px] font-bold text-gray-500">
-                    <img src="https://img.icons8.com/3d-fluency/48/checked.png" alt="" width={12} height={12} />
+                    <img src="https://img.icons8.com/3d-fluency/48/checkmark.png" alt="" width={12} height={12} />
                     100% free
                   </span>
                   <span className="text-gray-300 text-xs">•</span>
                   <span className="flex items-center gap-1 text-[11px] font-bold text-gray-500">
-                    <img src="https://img.icons8.com/3d-fluency/48/present.png" alt="" width={12} height={12} />
-                    No spam
+                    <img src="https://img.icons8.com/3d-fluency/48/clock.png" alt="" width={12} height={12} />
+                    About 5 mins
                   </span>
                   <span className="text-gray-300 text-xs">•</span>
                   <span className="flex items-center gap-1 text-[11px] font-bold text-gray-500">
-                    <img src="https://img.icons8.com/3d-fluency/48/heart.png" alt="" width={12} height={12} />
-                    No commitment
+                    <img src="https://img.icons8.com/3d-fluency/48/user-male-circle.png" alt="" width={12} height={12} />
+                    No account needed
                   </span>
                 </div>
               </>
@@ -1728,6 +1676,44 @@ export default function StartPage() {
           </div>
         )}
       </main>
+
+      {/* ── Sticky Continue bar (result phase) — always on screen so students
+          never miss the next step and leave early. ── */}
+      {phase === "result" && miniRec && !recError && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-50"
+          style={{
+            background: "rgba(248,243,236,0.9)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            borderTop: "1px solid rgba(30,111,255,0.1)",
+            boxShadow: "0 -6px 24px rgba(30,111,255,0.08)",
+          }}
+        >
+          <div className="mx-auto w-full max-w-lg px-5 pt-3" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
+            <button
+              onClick={() => router.push(`/deeper?session=${sessionId}`)}
+              className="w-full relative overflow-hidden flex items-center gap-3 px-4 py-3 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] focus:outline-none cta-glow-pulse"
+              style={{
+                borderRadius: 20,
+                background: "linear-gradient(135deg, #3B82FF 0%, #1E6FFF 100%)",
+                border: "none",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://img.icons8.com/3d-fluency/96/rocket.png" alt="" width={42} height={42} className="shrink-0 animate-pulse" />
+              <span className="flex-1 text-left">
+                <span className="block text-white text-[15px] font-black leading-tight">
+                  Continue for accurate results →
+                </span>
+                <span className="block text-white/85 text-[10px] font-bold mt-0.5">
+                  Unlock a sharper match + the reasoning behind it
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

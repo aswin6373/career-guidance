@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const result = generateRecommendations(sessionId, profile, kb, { topN: 20 });
 
     // Pick the best course to take next: walk the ranked careers, take each one's
-    // primary (first) course, dedupe by courseId, and keep the top 4 distinct
+    // primary (first) course, dedupe by courseId, and keep the top 3 distinct
     // courses. Each course is shown with the career it leads toward.
     const seen = new Set<string>();
     const courses: Array<{
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         fitScore: Math.round(career.fitScore * 100),
         confidence: Math.round(career.confidence * 100),
       });
-      if (courses.length >= 4) break;
+      if (courses.length >= 3) break;
     }
 
     return NextResponse.json({

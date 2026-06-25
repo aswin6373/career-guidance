@@ -22,7 +22,7 @@ export const serverEnv = {
     return required("GROQ_API_KEY", process.env.GROQ_API_KEY);
   },
   get groqModel() {
-    return process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";
+    return process.env.GROQ_MODEL ?? "qwen/qwen3-32b";
   },
   get kbVersion() {
     return process.env.KB_VERSION ?? "1";

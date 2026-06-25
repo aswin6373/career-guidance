@@ -6,9 +6,9 @@ import type { ChatMessage, ChatResult } from "@/lib/groq-types";
 // Server-only Groq client.
 //
 // FALLBACK STRATEGY:
-//   Primary: llama-3.3-70b-versatile (high quality, instruction-following).
+//   Primary: qwen/qwen3-32b (stronger reasoning than llama-3.3-70b).
 //   On 429 or 5xx → llama-3.1-8b-instant (same Groq key, separate per-model
-//   rate-limit bucket, so it's available when the 70B quota is exhausted).
+//   rate-limit bucket, so it's available when the primary quota is exhausted).
 
 const FALLBACK_MODEL = "llama-3.1-8b-instant";
 
@@ -63,6 +63,12 @@ export async function chat(messages: ChatMessage[], opts?: { temperature?: numbe
   }
 }
 
+// Qwen3 (and some other reasoning models) wrap their output in <think>...</think>
+// before the actual JSON. Strip it so JSON.parse never sees it.
+function stripThinkTags(raw: string): string {
+  return raw.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+}
+
 export async function extractJson<T = unknown>(
   messages: ChatMessage[],
   opts?: { temperature?: number }
@@ -75,7 +81,7 @@ export async function extractJson<T = unknown>(
       temperature: opts?.temperature ?? 0.1,
       response_format: { type: "json_object" },
     });
-    const raw = res.choices[0]?.message?.content ?? "";
+    const raw = stripThinkTags(res.choices[0]?.message?.content ?? "");
     try {
       return { data: JSON.parse(raw) as T, raw, model: res.model };
     } catch {
@@ -92,7 +98,7 @@ export async function extractJson<T = unknown>(
         temperature: opts?.temperature ?? 0.1,
         response_format: { type: "json_object" },
       });
-      const raw = res.choices[0]?.message?.content ?? "";
+      const raw = stripThinkTags(res.choices[0]?.message?.content ?? "");
       try {
         return { data: JSON.parse(raw) as T, raw, model: res.model };
       } catch {

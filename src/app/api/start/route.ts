@@ -9,20 +9,21 @@ import type { StudentProfile } from "@/types/profile";
 import type { Stream } from "@/types/onboarding";
 
 // Question indices (start quiz — engine only, no chat AI):
-//  0 — name + age + phone + gender (text inputs, no choices)
-//  1 — stream + percentage         (stream card + percentage input)
-//  2 — subjects                    (multi-select up to 2)
-//  3 — interest cluster            (single choice, saved at 0.5 for later deepening)
-//  4 — goal orientation            (single choice)
-//  5 — career priorities           (single choice)
-//  6 — budget band                 (single choice)
-//  7 — location preference         (single choice)
-//  8 — family expectations         (single choice)
-//  9 — work style                  (single choice)
+//  0  — name + age + phone + gender (text inputs, no choices)
+//  1  — stream + percentage         (stream card + percentage input)
+//  2  — subjects                    (multi-select up to 2)
+//  3  — interest cluster            (single choice, saved at 0.5 for later deepening)
+//  4  — secondary interest          (single choice, saved at 0.7 — narrows within cluster)
+//  5  — goal orientation            (single choice)
+//  6  — career priorities           (single choice)
+//  7  — budget band                 (single choice)
+//  8  — location preference         (single choice)
+//  9  — family expectations         (single choice)
+//  10 — work style                  (single choice)
 
 const bodySchema = z.object({
   sessionId: z.string().uuid(),
-  questionIndex: z.number().int().min(0).max(9),
+  questionIndex: z.number().int().min(0).max(10),
   values: z.array(z.string().max(100)).max(3).optional(), // multi-select (Q2 subjects)
   value: z.string().max(200).optional(),                  // single choice
   text: z.string().max(500).optional(),                   // free-text answer
@@ -34,12 +35,13 @@ const bodySchema = z.object({
   isChoice: z.boolean(),
 });
 
-const QUESTION_STAGES = ["", "", "", "interests", "aspiration", "aspiration", "", "", "", ""];
+const QUESTION_STAGES = ["", "", "", "interests", "interests", "aspiration", "aspiration", "", "", "", ""];
 const QUESTION_TEXTS = [
   "Hey there! Let's get started. What is your name, age, and phone number?",
   "Which stream are you studying in Plus Two?",
   "Which subjects do you enjoy the most or score best in?",
   "Would you be interested in any of these?",
+  "Nice! Which of these sounds most like what you'd love doing?",
   "What are you planning to do after Plus Two?",
   "What matters most to you when choosing a career?",
   "Can your family comfortably pay for a private college if needed?",
@@ -86,24 +88,32 @@ function buildDirectDelta(
         }
       }
       return null;
-    case 4: // goal
+    case 4: // secondary interest — saved at 0.7 (more specific signal than Q3's 0.5)
+      {
+        const clusterKey = value.split("::")[0];
+        if (INTEREST_CLUSTERS.includes(clusterKey as InterestCluster)) {
+          return { interests: { [clusterKey]: 0.7 } };
+        }
+        return null;
+      }
+    case 5: // goal
       {
         const goalVal = value === "repeat_year" ? "entrance_exams" : value;
         return { aspiration: { goalOrientation: goalVal as GoalOrientation } };
       }
-    case 5: // priorities
+    case 6: // priorities
       return { aspiration: { careerPriorities: [value] } };
-    case 6: // budget band
+    case 7: // budget band
       return ["low", "medium", "high", "no_constraint"].includes(value)
         ? { constraints: { budgetBand: value as StudentProfile["constraints"]["budgetBand"] } }
         : null;
-    case 7: // location preference
+    case 8: // location preference
       return ["kerala", "india", "abroad"].includes(value)
         ? { constraints: { locationPref: value as StudentProfile["constraints"]["locationPref"] } }
         : null;
-    case 8: // family expectations
+    case 9: // family expectations
       return { constraints: { familyExpectations: [value] } };
-    case 9: // work style → personality
+    case 10: // work style → personality
       return workstyleDelta(value);
     default:
       return null;

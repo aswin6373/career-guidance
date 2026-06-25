@@ -51,112 +51,111 @@ const SUBJECT_CHOICES: Record<Stream, Array<{ label: string; value: string }>> =
 
 const INTEREST_CHOICES: Record<Stream, Array<{ label: string; value: string }>> = {
   science_bio: [
-    { label: "Caring for patients or diagnosing disease", value: "health_medicine" },
-    { label: "Running experiments in a lab", value: "science_research" },
-    { label: "Growing crops or working with nature", value: "nature_agriculture" },
-    { label: "Teaching or mentoring others", value: "helping_teaching" },
+    { label: "Helping sick people get better — figuring out what's wrong and treating them", value: "health_medicine" },
+    { label: "Mixing chemicals or studying cells in a lab to find new things", value: "science_research" },
+    { label: "Working outside with plants, farms, and animals", value: "nature_agriculture" },
+    { label: "Explaining things clearly and helping others learn and grow", value: "helping_teaching" },
   ],
   science_maths: [
-    { label: "Building apps, websites, or programs", value: "technology_coding" },
-    { label: "Solving maths or engineering problems", value: "numbers_analysis" },
-    { label: "Designing structures or machines", value: "building_engineering" },
-    { label: "Analysing data to find patterns", value: "science_research" },
+    { label: "Creating apps, games, or websites that people use every day", value: "technology_coding" },
+    { label: "Using maths to figure out how machines, bridges, or systems work", value: "numbers_analysis" },
+    { label: "Drawing and planning buildings, machines, or other structures", value: "building_engineering" },
+    { label: "Looking at lots of numbers to find something useful or interesting", value: "science_research" },
   ],
   science_cs: [
-    { label: "Writing code and building software", value: "technology_coding" },
-    { label: "Designing apps, games, or interfaces", value: "design_visual" },
-    { label: "Working with AI, data, or security", value: "numbers_analysis" },
-    { label: "Building hardware or embedded systems", value: "building_engineering" },
+    { label: "Writing code that makes a program, app, or website actually work", value: "technology_coding" },
+    { label: "Deciding how an app or game looks — the screens, buttons, and colours", value: "design_visual" },
+    { label: "Making computers smarter, or keeping systems safe from hackers", value: "numbers_analysis" },
+    { label: "Building actual physical devices like robots, chips, or smart gadgets", value: "building_engineering" },
   ],
   commerce: [
-    { label: "Running or growing a business", value: "business_money" },
-    { label: "Managing accounts and investments", value: "numbers_analysis" },
-    { label: "Arguing cases or navigating law", value: "law_justice" },
-    { label: "Marketing, media, or communications", value: "media_communication" },
+    { label: "Starting or running my own business and making it grow", value: "business_money" },
+    { label: "Handling money — tracking what a company earns, spends, and owes", value: "numbers_analysis" },
+    { label: "Learning laws and helping people get justice in court", value: "law_justice" },
+    { label: "Making ads, promoting products, or working in TV or social media", value: "media_communication" },
   ],
   humanities: [
-    { label: "Counselling, teaching, or social work", value: "helping_teaching" },
-    { label: "Writing, journalism, or broadcasting", value: "media_communication" },
-    { label: "Studying law and advocating for justice", value: "law_justice" },
-    { label: "Creating art, design, or visual content", value: "design_visual" },
+    { label: "Helping people — teaching children, or guiding someone through a hard time", value: "helping_teaching" },
+    { label: "Writing news stories, reporting events, or speaking on TV or radio", value: "media_communication" },
+    { label: "Studying law and helping people fight for their rights in court", value: "law_justice" },
+    { label: "Making art, posters, or designs that look really good", value: "design_visual" },
   ],
 };
 
 const SUBJECT_INTEREST_CHOICES: Record<string, Array<{ label: string; value: string }>> = {
   "Biology": [
-    { label: "Caring for patients and treating diseases", value: "health_medicine" },
-    { label: "Doing experiments in a science lab", value: "science_research" },
-    { label: "Farming, agriculture, or working with nature", value: "nature_agriculture" },
-    { label: "Teaching or mentoring others", value: "helping_teaching" },
-    { label: "Working with animals or veterinary care", value: "nature_agriculture" },
-    { label: "Working in medicine research or pharma sales", value: "health_medicine" },
+    { label: "Helping sick people feel better — figuring out what's wrong and treating them", value: "health_medicine" },
+    { label: "Running experiments in a lab — mixing, testing, and discovering new things", value: "science_research" },
+    { label: "Working with plants, farms, and animals outdoors", value: "nature_agriculture" },
+    { label: "Explaining things and helping others learn and understand", value: "helping_teaching" },
+    { label: "Taking care of sick animals — like a vet does", value: "nature_agriculture" },
+    { label: "Finding new medicines in a lab or helping hospitals get the right drugs", value: "health_medicine" },
   ],
   "Chemistry": [
-    { label: "Doing experiments in a science lab", value: "science_research" },
-    { label: "Making new medicines or chemical products", value: "health_medicine" },
-    { label: "Working with materials and chemical processes", value: "building_engineering" },
-    { label: "Studying environmental pollution or green energy", value: "nature_agriculture" },
-    { label: "Solving crimes as a lab expert (forensics)", value: "science_research" },
+    { label: "Running chemical experiments in a lab to discover something new", value: "science_research" },
+    { label: "Creating medicines or useful chemicals that help people", value: "health_medicine" },
+    { label: "Working with materials in factories — like making plastics, metals, or fuels", value: "building_engineering" },
+    { label: "Studying pollution and finding cleaner ways to make energy", value: "nature_agriculture" },
+    { label: "Helping solve crimes using chemical lab tests (like in crime shows)", value: "science_research" },
   ],
   "Physics": [
-    { label: "Solving complex science and physics questions", value: "science_research" },
-    { label: "Designing machines, electronics, or gadgets", value: "building_engineering" },
-    { label: "Working with numbers and space data", value: "numbers_analysis" },
-    { label: "Developing new tech like robotics or microchips", value: "technology_coding" },
-    { label: "Designing buildings, aircraft, or vehicles", value: "building_engineering" },
+    { label: "Exploring deep science questions — like how gravity or light really works", value: "science_research" },
+    { label: "Designing gadgets, electronics, or machines that do useful things", value: "building_engineering" },
+    { label: "Working with space data and satellites — tracking stars or rockets", value: "numbers_analysis" },
+    { label: "Building robots, chips, or new technology from scratch", value: "technology_coding" },
+    { label: "Designing aircraft, vehicles, or big structures using physics", value: "building_engineering" },
   ],
   "Mathematics": [
-    { label: "Solving complex math puzzles and equations", value: "numbers_analysis" },
-    { label: "Building finance and investment plans", value: "business_money" },
-    { label: "Writing code, computer math, or cryptography", value: "technology_coding" },
-    { label: "Teaching math or doing academic research", value: "helping_teaching" },
-    { label: "Analyzing data, charts, and statistics", value: "numbers_analysis" },
-    { label: "Working in insurance math (calculating risk)", value: "business_money" },
+    { label: "Solving really hard maths problems — just because it's satisfying", value: "numbers_analysis" },
+    { label: "Working with money — calculating returns, risks, and investment plans", value: "business_money" },
+    { label: "Using maths to write code or keep people's data safe online", value: "technology_coding" },
+    { label: "Teaching maths or studying brand-new theories in the field", value: "helping_teaching" },
+    { label: "Finding patterns in data — like using stats to predict sports results", value: "numbers_analysis" },
+    { label: "Calculating financial risk for companies — like setting insurance prices", value: "business_money" },
   ],
   "Computer Science": [
-    { label: "Writing code and building software", value: "technology_coding" },
-    { label: "Designing mobile apps, video games, or websites", value: "design_visual" },
-    { label: "Working with AI, smart databases, and big data", value: "numbers_analysis" },
-    { label: "Managing IT systems, networks, and cyber security", value: "building_engineering" },
-    { label: "Creating animations or digital visual effects", value: "design_visual" },
-    { label: "Developing computer hardware and microchips", value: "building_engineering" },
+    { label: "Writing code that makes a program, app, or website actually work", value: "technology_coding" },
+    { label: "Designing how games, apps, or websites look and feel to users", value: "design_visual" },
+    { label: "Teaching computers to learn things on their own — AI and smart data", value: "numbers_analysis" },
+    { label: "Keeping computer networks safe from hackers and protecting data", value: "building_engineering" },
+    { label: "Making 3D animations or visual effects for films or games", value: "design_visual" },
+    { label: "Building the actual chips and circuits that go inside phones and computers", value: "building_engineering" },
   ],
   "Accountancy": [
-    { label: "Managing financial records and business accounts", value: "business_money" },
-    { label: "Analyzing budgets, taxes, and expenses", value: "numbers_analysis" },
-    { label: "Teaching commerce or finance in school/college", value: "helping_teaching" },
-    { label: "Auditing business accounts to check rules", value: "law_justice" },
-    { label: "Investigating financial fraud (money forensic)", value: "law_justice" },
-    { label: "Consulting companies on growth and deals", value: "business_money" },
+    { label: "Keeping track of a company's money — what comes in and goes out", value: "business_money" },
+    { label: "Checking if companies are following financial rules (auditing)", value: "numbers_analysis" },
+    { label: "Teaching commerce or accounts in school or college", value: "helping_teaching" },
+    { label: "Finding financial fraud — spotting where money has been stolen", value: "law_justice" },
+    { label: "Advising businesses on how to save money and grow bigger", value: "business_money" },
   ],
   "Business Studies": [
-    { label: "Starting and running a new business/startup", value: "business_money" },
-    { label: "Marketing, advertising, and selling products", value: "media_communication" },
-    { label: "Managing teams, operations, and office staff", value: "helping_teaching" },
-    { label: "Developing business plans and market research", value: "numbers_analysis" },
-    { label: "Working in public relations or event management", value: "media_communication" },
+    { label: "Starting your own business or a brand-new product from scratch", value: "business_money" },
+    { label: "Making ads and campaigns that make people want to buy something", value: "media_communication" },
+    { label: "Managing a team or running the daily work of a company", value: "helping_teaching" },
+    { label: "Researching what customers want and the best way to reach them", value: "numbers_analysis" },
+    { label: "Planning events or handling public relations for a company", value: "media_communication" },
   ],
   "Economics": [
-    { label: "Analyzing market trends, prices, and inflation", value: "numbers_analysis" },
-    { label: "Advising banks and government on finance policies", value: "business_money" },
-    { label: "Researching how markets and societies function", value: "science_research" },
-    { label: "Working on government policies and planning", value: "law_justice" },
-    { label: "Working as a financial advisor or investment researcher", value: "business_money" },
+    { label: "Understanding why prices go up or down — like petrol or gold", value: "numbers_analysis" },
+    { label: "Advising banks or the government on how to manage the country's money", value: "business_money" },
+    { label: "Researching how people and markets make decisions", value: "science_research" },
+    { label: "Working with government to design policies that actually help people", value: "law_justice" },
+    { label: "Helping companies or individuals decide where to invest their money", value: "business_money" },
   ],
   "English": [
-    { label: "Writing articles, books, or news journalism", value: "media_communication" },
-    { label: "Teaching literature or English language", value: "helping_teaching" },
-    { label: "Creating ads, social media posts, and creative copy", value: "design_visual" },
-    { label: "Researching language science and how we speak", value: "science_research" },
-    { label: "Working in book publishing or editing", value: "media_communication" },
-    { label: "Translating languages or corporate communications", value: "media_communication" },
+    { label: "Writing articles, stories, or news that people love reading", value: "media_communication" },
+    { label: "Teaching English or literature in a school or college", value: "helping_teaching" },
+    { label: "Writing scripts, ads, or social media content for brands", value: "design_visual" },
+    { label: "Studying how language and communication actually work", value: "science_research" },
+    { label: "Editing books or writing content for magazines and websites", value: "media_communication" },
+    { label: "Translating languages or handling communication for companies", value: "media_communication" },
   ],
   "Psychology": [
-    { label: "Counselling people and helping mental health", value: "health_medicine" },
-    { label: "Researching human behavior and brain science", value: "science_research" },
-    { label: "Working in corporate HR (recruiting and hiring staff)", value: "business_money" },
-    { label: "Social work and helping local communities", value: "helping_teaching" },
-    { label: "Analyzing consumer habits and marketing psychology", value: "numbers_analysis" },
+    { label: "Helping people deal with mental health problems — counselling or therapy", value: "health_medicine" },
+    { label: "Researching how the human brain and behaviour really work", value: "science_research" },
+    { label: "Working in HR — finding and selecting the right people for a job", value: "business_money" },
+    { label: "Helping communities or social groups who are struggling", value: "helping_teaching" },
+    { label: "Studying why people buy things — consumer behaviour and marketing", value: "numbers_analysis" },
   ],
 };
 
@@ -170,10 +169,10 @@ function getDynamicInterestChoices(subject: string, stream: Stream) {
   // Keyword matching
   if (s.includes("art") || s.includes("design") || s.includes("draw") || s.includes("paint") || s.includes("music") || s.includes("dance") || s.includes("sing") || s.includes("acting") || s.includes("drama") || s.includes("photo")) {
     return [
-      { label: "Creating original artwork or performances", value: "design_visual" },
-      { label: "Teaching or mentoring students in the arts", value: "helping_teaching" },
-      { label: "Working in media, film, or broadcasting", value: "media_communication" },
-      { label: "Managing an arts or entertainment business", value: "business_money" },
+      { label: "Creating your own art, music, or performances to share with people", value: "design_visual" },
+      { label: "Teaching art, music, or dance to young students", value: "helping_teaching" },
+      { label: "Working in films, TV shows, or making online content", value: "media_communication" },
+      { label: "Running an arts business or managing events and shows", value: "business_money" },
     ];
   }
 
@@ -186,131 +185,131 @@ function getDynamicInterestChoices(subject: string, stream: Stream) {
     s.includes("yoga") || s.includes("skating") || s.includes("play")
   ) {
     return [
-      { label: "Training athletes, fitness coaching, or gym training", value: "defence_adventure" },
-      { label: "Teaching physical education or sports coaching", value: "helping_teaching" },
-      { label: "Managing a gym, sports team, or fitness facility", value: "business_money" },
-      { label: "Working in sports media, journalism, or events", value: "media_communication" },
+      { label: "Training people to get fit or coaching a sports team", value: "defence_adventure" },
+      { label: "Teaching physical education or sports in school", value: "helping_teaching" },
+      { label: "Running a gym, sports club, or fitness centre", value: "business_money" },
+      { label: "Reporting sports news or working in sports events and media", value: "media_communication" },
     ];
   }
 
   if (s.includes("cook") || s.includes("food") || s.includes("chef") || s.includes("bakery") || s.includes("baking") || s.includes("culinary") || s.includes("hotel") || s.includes("hospitality")) {
     return [
-      { label: "Working as a professional chef or baker", value: "design_visual" },
-      { label: "Managing a restaurant, hotel, or food business", value: "business_money" },
-      { label: "Developing new food products or culinary arts", value: "design_visual" },
-      { label: "Promoting food blogs, media, or hospitality events", value: "media_communication" },
+      { label: "Working as a chef or baker — cooking amazing food for people", value: "design_visual" },
+      { label: "Running or managing a restaurant, hotel, or food outlet", value: "business_money" },
+      { label: "Creating new food recipes or products and sharing them", value: "design_visual" },
+      { label: "Writing a food blog, doing food photography, or running a food show", value: "media_communication" },
     ];
   }
 
   if (s.includes("lang") || s.includes("lit") || s.includes("read") || s.includes("write")) {
     return [
-      { label: "Writing, editing, or publishing", value: "media_communication" },
-      { label: "Teaching languages or literature", value: "helping_teaching" },
-      { label: "Researching texts and history", value: "science_research" },
-      { label: "Translating or working in public relations", value: "media_communication" },
+      { label: "Writing stories, articles, or books that people love reading", value: "media_communication" },
+      { label: "Teaching a language or literature in school or college", value: "helping_teaching" },
+      { label: "Researching how languages and stories have changed over history", value: "science_research" },
+      { label: "Translating content or working in PR and communications", value: "media_communication" },
     ];
   }
 
   if (s.includes("comp") || s.includes("tech") || s.includes("code") || s.includes("program") || s.includes("it")) {
     return [
-      { label: "Writing code and building software", value: "technology_coding" },
-      { label: "Designing apps, games, or interfaces", value: "design_visual" },
-      { label: "Working with AI and data", value: "numbers_analysis" },
-      { label: "Managing IT systems and security", value: "building_engineering" },
+      { label: "Writing code to build apps, programs, or websites", value: "technology_coding" },
+      { label: "Designing how apps or games look and feel to the user", value: "design_visual" },
+      { label: "Working with AI or smart data systems", value: "numbers_analysis" },
+      { label: "Keeping computer networks and systems safe from attacks", value: "building_engineering" },
     ];
   }
-  
-  if (s.includes("soci") || s.includes("politic") || s.includes("civic")) {
+
+  if (s.includes("soci") || s.includes("politic") || s.includes("civic") || s.includes("history") || s.includes("histor")) {
     return [
-      { label: "Working in public policy or government", value: "law_justice" },
-      { label: "Researching societal trends", value: "science_research" },
-      { label: "Social work and community support", value: "helping_teaching" },
-      { label: "Journalism or political communication", value: "media_communication" },
+      { label: "Working in the government or writing policies that help people", value: "law_justice" },
+      { label: "Researching how societies and people change over time", value: "science_research" },
+      { label: "Helping communities and people who need support (social work)", value: "helping_teaching" },
+      { label: "Writing or reporting about politics and social issues", value: "media_communication" },
     ];
   }
 
   // Dynamic fallback using the custom subject name itself
   const capitalizedSubject = subject.charAt(0).toUpperCase() + subject.slice(1);
   return [
-    { label: `Researching and studying ${capitalizedSubject} in-depth`, value: "science_research" },
-    { label: `Teaching or mentoring others in ${capitalizedSubject}`, value: "helping_teaching" },
-    { label: `Applying ${capitalizedSubject} to build new solutions`, value: "building_engineering" },
-    { label: `Using ${capitalizedSubject} in a business setting`, value: "business_money" },
+    { label: `Going deep into ${capitalizedSubject} — studying and researching it seriously`, value: "science_research" },
+    { label: `Explaining ${capitalizedSubject} to others — teaching or tutoring`, value: "helping_teaching" },
+    { label: `Using ${capitalizedSubject} to build or create something real`, value: "building_engineering" },
+    { label: `Using ${capitalizedSubject} to run a business or solve a real-world problem`, value: "business_money" },
   ];
 }
 
 const COMBINED_SUBJECT_INTERESTS: Record<string, Array<{ label: string; value: string }>> = {
   "Chemistry+Computer Science": [
-    { label: "Using computer AI to discover new medicines", value: "health_medicine" },
-    { label: "Using computer models to test chemical and molecular reactions", value: "science_research" },
-    { label: "Building computer programs for biotech labs or chemical factories", value: "building_engineering" },
-    { label: "Analyzing chemical data using data science tools", value: "numbers_analysis" },
+    { label: "Using AI or code to help discover new medicines and treatments", value: "health_medicine" },
+    { label: "Writing programs that simulate how chemicals react with each other", value: "science_research" },
+    { label: "Building software for labs or chemical factories", value: "building_engineering" },
+    { label: "Finding patterns in chemical data using computers", value: "numbers_analysis" },
   ],
   "Biology+Computer Science": [
-    { label: "Analyzing DNA and genetic data using coding (Bioinformatics)", value: "science_research" },
-    { label: "Building health apps and medical software for hospitals", value: "health_medicine" },
-    { label: "Modeling biological cells and diseases on computers", value: "science_research" },
-    { label: "Building software for robotic surgeries or health gadgets", value: "building_engineering" },
+    { label: "Using coding to analyse DNA and understand diseases (bioinformatics)", value: "science_research" },
+    { label: "Building health apps or medical software for hospitals and patients", value: "health_medicine" },
+    { label: "Studying how cells and diseases work by modelling them on a computer", value: "science_research" },
+    { label: "Writing software that powers robotic surgery or health gadgets", value: "building_engineering" },
   ],
   "Mathematics+Physics": [
-    { label: "Solving astrophysics math and modeling space data", value: "science_research" },
-    { label: "Building physics logic/engines for video games and simulations", value: "technology_coding" },
-    { label: "Using math and statistical models to analyze money markets", value: "numbers_analysis" },
-    { label: "Designing aerospace systems, rockets, or structural models", value: "building_engineering" },
+    { label: "Studying the maths behind space, gravity, and the universe", value: "science_research" },
+    { label: "Writing the physics that makes a video game simulation feel real", value: "technology_coding" },
+    { label: "Using maths to understand how stock markets and economies move", value: "numbers_analysis" },
+    { label: "Designing rockets, aircraft, or big structures using physics and maths", value: "building_engineering" },
   ],
   "Computer Science+Mathematics": [
-    { label: "Building AI, machine learning models, and smart code", value: "technology_coding" },
-    { label: "Building secure systems, cryptography, and cyber protection", value: "technology_coding" },
-    { label: "Working as a data analyst studying big statistics datasets", value: "numbers_analysis" },
-    { label: "Creating mathematical algorithms for financial markets", value: "business_money" },
+    { label: "Building AI that learns and gets smarter on its own", value: "technology_coding" },
+    { label: "Creating secure systems that protect data from hackers", value: "technology_coding" },
+    { label: "Analysing large datasets to find useful patterns and trends", value: "numbers_analysis" },
+    { label: "Writing mathematical models that predict how financial markets move", value: "business_money" },
   ],
   "Biology+Chemistry": [
-    { label: "Developing new vaccines, medicines, and medical therapies", value: "health_medicine" },
-    { label: "Researching genetics and biotechnology in a science lab", value: "science_research" },
-    { label: "Testing food safety, agriculture science, or soil quality", value: "nature_agriculture" },
-    { label: "Solving crimes by testing chemical/biological evidence (forensics)", value: "science_research" },
+    { label: "Developing new vaccines, medicines, or treatments in a lab", value: "health_medicine" },
+    { label: "Researching DNA, genetics, and biotech to solve medical problems", value: "science_research" },
+    { label: "Testing whether food, soil, or crops are safe and healthy", value: "nature_agriculture" },
+    { label: "Using lab tests to help solve crimes (like forensics in crime shows)", value: "science_research" },
   ],
   "Accountancy+Economics": [
-    { label: "Analyzing business financial reports and investment risks", value: "business_money" },
-    { label: "Researching economic trends and banking policies", value: "numbers_analysis" },
-    { label: "Advising businesses on taxes and growth plans", value: "business_money" },
-    { label: "Checking government spending or business compliance", value: "law_justice" },
+    { label: "Reading a company's financial reports and spotting risks", value: "business_money" },
+    { label: "Studying bank policies and economic trends that affect everyone's life", value: "numbers_analysis" },
+    { label: "Advising companies on taxes, savings, and how to grow", value: "business_money" },
+    { label: "Checking if government spending or company accounts follow the rules", value: "law_justice" },
   ],
   "Business Studies+Economics": [
-    { label: "Advising companies on growth and business strategies", value: "business_money" },
-    { label: "Studying market demand, price trends, and consumer habits", value: "numbers_analysis" },
-    { label: "Managing international trade, shipping, and supply chains", value: "business_money" },
-    { label: "Working in PR (public relations) or writing economic news", value: "media_communication" },
+    { label: "Helping a company figure out how to grow and beat competitors", value: "business_money" },
+    { label: "Studying why people buy certain products and how prices change", value: "numbers_analysis" },
+    { label: "Managing how products move across countries — international trade", value: "business_money" },
+    { label: "Writing about economic news or working in public relations", value: "media_communication" },
   ],
   "Chemistry+Physics": [
-    { label: "Researching materials science, nanotechnology, or physical chemistry", value: "science_research" },
-    { label: "Working in chemical engineering or materials manufacturing", value: "building_engineering" },
-    { label: "Studying environmental pollution, green energy, and solar systems", value: "nature_agriculture" },
-    { label: "Teaching physics or chemistry at schools/colleges", value: "helping_teaching" },
+    { label: "Researching new materials — like making something stronger than steel", value: "science_research" },
+    { label: "Working in chemical factories or engineering processes", value: "building_engineering" },
+    { label: "Studying pollution, solar energy, or clean water solutions", value: "nature_agriculture" },
+    { label: "Teaching chemistry or physics in school or college", value: "helping_teaching" },
   ],
   "Accountancy+Business Studies": [
-    { label: "Starting and managing a business venture or franchise", value: "business_money" },
-    { label: "Analyzing business accounts and company financial health", value: "numbers_analysis" },
-    { label: "Advising companies on growth, management, and team building", value: "helping_teaching" },
-    { label: "Checking bookkeeping practices and tax compliance", value: "law_justice" },
+    { label: "Starting and running a business — managing everything from money to team", value: "business_money" },
+    { label: "Reading a company's accounts and checking if the numbers make sense", value: "numbers_analysis" },
+    { label: "Helping a company plan for growth — strategy, team culture, and management", value: "helping_teaching" },
+    { label: "Making sure a business pays the right taxes and follows financial rules", value: "law_justice" },
   ],
   "Economics+Mathematics": [
-    { label: "Using math to study economic trends and make charts", value: "numbers_analysis" },
-    { label: "Analyzing stock markets and corporate investments", value: "business_money" },
-    { label: "Researching social behaviors and population databases", value: "science_research" },
-    { label: "Working in government planning, policy design, or IAS prep", value: "law_justice" },
+    { label: "Using maths to study how prices, income, and economies change", value: "numbers_analysis" },
+    { label: "Analysing stock markets and figuring out where to invest money", value: "business_money" },
+    { label: "Researching how people's choices affect society and the economy", value: "science_research" },
+    { label: "Working in government or designing policies that help the public", value: "law_justice" },
   ],
   "History+English": [
-    { label: "Creative writing, book publishing, or journalism", value: "media_communication" },
-    { label: "Teaching history, literature, or languages", value: "helping_teaching" },
-    { label: "Preparing for civil services (IAS), law, or public administration", value: "law_justice" },
-    { label: "Working in museums and preserving historical monuments", value: "design_visual" },
+    { label: "Writing stories, articles, or books — fiction or non-fiction", value: "media_communication" },
+    { label: "Teaching history, literature, or English in school or college", value: "helping_teaching" },
+    { label: "Preparing for civil services (IAS/IPS) or working in public service", value: "law_justice" },
+    { label: "Working in museums or preserving historical sites and old records", value: "design_visual" },
   ],
   "English+Psychology": [
-    { label: "Writing self-help blogs, books, or editing mental health content", value: "media_communication" },
-    { label: "Counselling students, offering career guidance, or teaching", value: "helping_teaching" },
-    { label: "Working in HR (hiring staff), public relations, or marketing", value: "business_money" },
-    { label: "Working in clinical psychology and mental health settings", value: "health_medicine" },
+    { label: "Writing about mental health topics or editing content that helps people", value: "media_communication" },
+    { label: "Counselling students, guiding careers, or teaching", value: "helping_teaching" },
+    { label: "Working in HR — selecting people, managing office culture, or PR", value: "business_money" },
+    { label: "Working as a psychologist or therapist in a clinic or hospital", value: "health_medicine" },
   ],
 };
 
@@ -369,7 +368,103 @@ const WORKSTYLE_CHOICES = [
   { label: "A mix of all of these", value: "mixed" },
 ];
 
-const TOTAL_QUESTIONS = 10;
+// Maps free-text Q3 answers to the closest interest cluster (client-side, no API needed).
+// Used so typed answers also trigger the Q4 secondary interest question.
+function detectClusterFromText(text: string): string | null {
+  const t = text.toLowerCase();
+  if (t.includes("build") || t.includes("architect") || t.includes("struct") || t.includes("civil") || t.includes("mechanic") || t.includes("construct") || t.includes("engineer")) return "building_engineering";
+  if (t.includes("code") || t.includes("program") || t.includes("software") || t.includes("app") || t.includes("web") || t.includes("tech") || t.includes("comput")) return "technology_coding";
+  if (t.includes("doctor") || t.includes("medic") || t.includes("health") || t.includes("nurs") || t.includes("hospital") || t.includes("pharma") || t.includes("patient")) return "health_medicine";
+  if (t.includes("research") || t.includes("scien") || t.includes("lab") || t.includes("experiment") || t.includes("physics") || t.includes("chem") || t.includes("biolog")) return "science_research";
+  if (t.includes("design") || t.includes("art") || t.includes("draw") || t.includes("creat") || t.includes("visual") || t.includes("graphic") || t.includes("paint") || t.includes("sketch")) return "design_visual";
+  if (t.includes("business") || t.includes("money") || t.includes("financ") || t.includes("invest") || t.includes("bank") || t.includes("market") || t.includes("trade") || t.includes("entrepreneur") || t.includes("startup")) return "business_money";
+  if (t.includes("teach") || t.includes("educat") || t.includes("counsel") || t.includes("social") || t.includes("mentor") || t.includes("help people") || t.includes("guide")) return "helping_teaching";
+  if (t.includes("law") || t.includes("legal") || t.includes("court") || t.includes("justice") || t.includes("lawyer") || t.includes("advocate") || t.includes("ips")) return "law_justice";
+  if (t.includes("media") || t.includes("journal") || t.includes("writ") || t.includes("news") || t.includes("film") || t.includes("video") || t.includes("content") || t.includes("story")) return "media_communication";
+  if (t.includes("farm") || t.includes("nature") || t.includes("agri") || t.includes("forest") || t.includes("environment") || t.includes("plant") || t.includes("animal") || t.includes("wildlife")) return "nature_agriculture";
+  if (t.includes("army") || t.includes("defence") || t.includes("military") || t.includes("police") || t.includes("nda") || t.includes("sport") || t.includes("adventur") || t.includes("soldier")) return "defence_adventure";
+  if (t.includes("math") || t.includes("number") || t.includes("data") || t.includes("statistic") || t.includes("analys") || t.includes("account") || t.includes("calcul")) return "numbers_analysis";
+  return null;
+}
+
+// Secondary interest choices shown after Q3 — drills into what aspect of the
+// selected cluster appeals most. Keys match the 12 interest cluster IDs.
+const SECONDARY_INTEREST_CHOICES: Record<string, Array<{ label: string; value: string }>> = {
+  building_engineering: [
+    { label: "Designing what a building looks like — shapes, rooms, and style", value: "design_visual" },
+    { label: "Using maths to make sure a building stands strong and safe", value: "numbers_analysis" },
+    { label: "Coding apps or software for machines and factories", value: "technology_coding" },
+    { label: "Managing a building project — workers, schedule, and budget", value: "business_money" },
+  ],
+  technology_coding: [
+    { label: "Building apps, games, or websites that people love using", value: "design_visual" },
+    { label: "Working with AI, data, or making computers smarter", value: "numbers_analysis" },
+    { label: "Keeping systems safe from hackers — cyber security", value: "building_engineering" },
+    { label: "Starting a tech company or building my own product", value: "business_money" },
+  ],
+  health_medicine: [
+    { label: "Treating sick people directly — as a doctor, nurse, or physio", value: "health_medicine" },
+    { label: "Finding new medicines or cures for diseases in a lab", value: "science_research" },
+    { label: "Helping people feel better mentally — counselling or psychology", value: "helping_teaching" },
+    { label: "Running a hospital or managing health services", value: "business_money" },
+  ],
+  science_research: [
+    { label: "Doing experiments in a lab — chemistry, biology, or physics", value: "science_research" },
+    { label: "Studying nature, climate change, or the environment", value: "nature_agriculture" },
+    { label: "Researching maths, AI, or computer science", value: "numbers_analysis" },
+    { label: "Teaching science or sharing discoveries with others", value: "helping_teaching" },
+  ],
+  design_visual: [
+    { label: "Making logos, posters, or designs for brands", value: "design_visual" },
+    { label: "Designing apps or websites that look good and work well", value: "technology_coding" },
+    { label: "Creating videos, reels, or short films", value: "media_communication" },
+    { label: "Designing buildings, rooms, or clothes and fashion", value: "building_engineering" },
+  ],
+  business_money: [
+    { label: "Starting my own business or startup from scratch", value: "business_money" },
+    { label: "Managing company money — banking, finance, or investments", value: "numbers_analysis" },
+    { label: "Marketing and selling products or ideas to people", value: "media_communication" },
+    { label: "Managing a team or helping a company grow", value: "helping_teaching" },
+  ],
+  helping_teaching: [
+    { label: "Teaching students in a school or college", value: "helping_teaching" },
+    { label: "Listening to people's problems and helping them feel better", value: "health_medicine" },
+    { label: "Helping families or communities who are struggling", value: "helping_teaching" },
+    { label: "Training or coaching people to get better at their job", value: "business_money" },
+  ],
+  law_justice: [
+    { label: "Arguing cases and winning in court as a lawyer", value: "law_justice" },
+    { label: "Working in the police or crime investigation", value: "defence_adventure" },
+    { label: "Working in government or writing laws that help people", value: "law_justice" },
+    { label: "Helping companies handle legal deals and agreements", value: "business_money" },
+  ],
+  media_communication: [
+    { label: "Writing news stories, scripts, or creative content", value: "media_communication" },
+    { label: "Making YouTube videos, short films, or reels", value: "design_visual" },
+    { label: "Working in advertising or promoting brands", value: "business_money" },
+    { label: "Hosting a show, podcast, or speaking in front of people", value: "media_communication" },
+  ],
+  nature_agriculture: [
+    { label: "Working on farms or with crops and plant science", value: "nature_agriculture" },
+    { label: "Protecting wildlife, forests, or the environment", value: "science_research" },
+    { label: "Taking care of sick animals — vet work", value: "health_medicine" },
+    { label: "Starting a food or farming business", value: "business_money" },
+  ],
+  defence_adventure: [
+    { label: "Joining the Army, Navy, or Air Force as an officer", value: "defence_adventure" },
+    { label: "Working in the police or protecting the country's borders", value: "law_justice" },
+    { label: "Outdoor adventure — trekking, mountaineering, or survival", value: "defence_adventure" },
+    { label: "Coaching a sports team or teaching physical education", value: "helping_teaching" },
+  ],
+  numbers_analysis: [
+    { label: "Finding patterns in data and making graphs or predictions", value: "numbers_analysis" },
+    { label: "Managing money in banking, finance, or the stock market", value: "business_money" },
+    { label: "Doing research in maths or physics", value: "science_research" },
+    { label: "Coding for AI, machine learning, or data tools", value: "technology_coding" },
+  ],
+};
+
+const TOTAL_QUESTIONS = 11;
 
 // ── UI-only icon maps (Icons8 3D Fluency) ─────────────────────────────────
 const i8 = (n: string) => `https://img.icons8.com/3d-fluency/96/${n}.png`;
@@ -555,15 +650,29 @@ export default function StartPage() {
   const [miniRec, setMiniRec] = useState<MiniRecResult | null>(null);
   const [recError, setRecError] = useState(false);
 
-  // AI-generated Q3 choices (when subject is typed or not in hardcoded lookup)
+  // AI-generated Q3 choices — generated fresh from the student's subjects every time
+  // (the hardcoded maps below are only a silent fallback if the AI call fails).
   const [aiQ3, setAiQ3] = useState<{ question: string; choices: Array<{ label: string; value: string }> } | null>(null);
   const [q3LoadingAI, setQ3LoadingAI] = useState(false);
+
+  // AI-generated Q4 choices — drill deeper into the cluster picked at Q3.
+  const [aiQ4, setAiQ4] = useState<{ question: string; choices: Array<{ label: string; value: string }> } | null>(null);
+  const [q4LoadingAI, setQ4LoadingAI] = useState(false);
+
+  // Tracks which cluster the student picked at Q3 — used to fetch the right Q4 choices.
+  // A ref is used alongside state so advance() sees the correct value even inside
+  // async closures (state captured at call time vs ref always reads current value).
+  const q3ClusterRef = useRef<string | null>(null);
+  const [q3Cluster, setQ3Cluster] = useState<string | null>(null);
+  // The exact activity phrase the student picked at Q3 — passed to the Q4 AI prompt
+  // so the deeper question is grounded in what they actually chose.
+  const q3ActivityRef = useRef<string | null>(null);
 
   // Animate question transitions
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (qIndex === 4) {
+    if (qIndex === 5) {
       const lower = textVal.toLowerCase();
       if (lower.includes("repeat") || lower.includes("re-use") || lower.includes("drop") || lower.includes("one year") || lower.includes("coaching")) {
         setInfoMessage("Taking a drop/repeat year to prep for JEE/NEET/KEAM is challenging but very rewarding. We'll adjust your path to focus on cracking these exams!");
@@ -593,8 +702,8 @@ export default function StartPage() {
 
   function getLabel() {
     return [
-      "About You", "Your Stream", "Your Subjects", "Your Interests", "Your Goal",
-      "Your Priorities", "Your Budget", "Your Location", "Your Family", "Your Work Style",
+      "About You", "Your Stream", "Your Subjects", "Your Interests", "Your Direction",
+      "Your Goal", "Your Priorities", "Your Budget", "Your Location", "Your Family", "Your Work Style",
     ][qIndex] ?? "";
   }
 
@@ -604,12 +713,13 @@ export default function StartPage() {
       case 1: return "Which stream are you studying in Plus Two?";
       case 2: return "Which subjects do you enjoy the most or score best in? (pick up to 2)";
       case 3: return aiQ3?.question ?? "Would you be interested in any of these?";
-      case 4: return "What are you planning to do after Plus Two?";
-      case 5: return "What matters most to you when choosing a career?";
-      case 6: return "Can your family comfortably pay for a private college if needed?";
-      case 7: return "Are you open to moving to another city or abroad to study?";
-      case 8: return "Does your family have a strong preference about your career?";
-      case 9: return "How do you most enjoy working?";
+      case 4: return aiQ4?.question ?? "Nice! Which of these sounds most like what you'd love doing?";
+      case 5: return "What are you planning to do after Plus Two?";
+      case 6: return "What matters most to you when choosing a career?";
+      case 7: return "Can your family comfortably pay for a private college if needed?";
+      case 8: return "Are you open to moving to another city or abroad to study?";
+      case 9: return "Does your family have a strong preference about your career?";
+      case 10: return "How do you most enjoy working?";
       default: return "";
     }
   }
@@ -656,12 +766,24 @@ export default function StartPage() {
 
         return baseChoices.slice(0, 6).map((c, idx) => ({ label: c.label, value: `${c.value}::${idx}` }));
       }
-      case 4: return getGoalChoices(stream);
-      case 5: return PRIORITY_CHOICES;
-      case 6: return BUDGET_CHOICES;
-      case 7: return LOCATION_CHOICES;
-      case 8: return FAMILY_CHOICES;
-      case 9: return WORKSTYLE_CHOICES;
+      case 4: {
+        // Prefer AI-generated deeper choices; fall back to the hardcoded map only
+        // if the AI call failed.
+        if (aiQ4) {
+          return aiQ4.choices.map((c, idx) => ({ label: c.label, value: `${c.value}::${idx}` }));
+        }
+        const cluster = q3Cluster;
+        if (cluster && SECONDARY_INTEREST_CHOICES[cluster]) {
+          return SECONDARY_INTEREST_CHOICES[cluster];
+        }
+        return [];
+      }
+      case 5: return getGoalChoices(stream);
+      case 6: return PRIORITY_CHOICES;
+      case 7: return BUDGET_CHOICES;
+      case 8: return LOCATION_CHOICES;
+      case 9: return FAMILY_CHOICES;
+      case 10: return WORKSTYLE_CHOICES;
       default: return [];
     }
   }
@@ -670,8 +792,8 @@ export default function StartPage() {
     switch (qIndex) {
       case 2: return "e.g. Applied Statistics, Physical Education…";
       case 3: return "e.g. I love designing posters, writing stories…";
-      case 4: return "e.g. I want to go abroad for studies…";
-      case 5: return "e.g. Work-life balance matters most to me…";
+      case 5: return "e.g. I want to go abroad for studies…";
+      case 6: return "e.g. Work-life balance matters most to me…";
       default: return "Type your answer…";
     }
   }
@@ -725,7 +847,11 @@ export default function StartPage() {
     setVisible(false);
     setTimeout(() => {
       if (qIndex < TOTAL_QUESTIONS - 1) {
-        setQIndex((i) => i + 1);
+        const nextQ = qIndex + 1;
+        // Q4 requires a cluster chip picked in Q3. If the student typed a free-text
+        // answer instead, q3ClusterRef is null — skip Q4 and go straight to Q5 (goal).
+        const jumpTo = nextQ === 4 && q3ClusterRef.current === null ? 5 : nextQ;
+        setQIndex(jumpTo);
         setSelectedSubjects(new Set());
         setSelectedInterests(new Set());
         setTextVal("");
@@ -773,13 +899,9 @@ export default function StartPage() {
     void postAnswer({ value: stream, percentage: pct, isChoice: true });
   }
 
-  function needsAiQ3(subjects: string[], typedText: string): boolean {
-    if (typedText.trim()) return true;
-    return subjects.some((s) => !SUBJECT_INTEREST_CHOICES[s]);
-  }
-
   async function fetchAiQ3(subjects: string[], typedText: string, streamVal: string) {
     const subjectList = typedText.trim() ? [typedText.trim()] : subjects;
+    setAiQ3(null);
     setQ3LoadingAI(true);
     try {
       const res = await fetch("/api/q3choices", {
@@ -797,17 +919,47 @@ export default function StartPage() {
     }
   }
 
+  // Fetch deeper Q4 choices for the cluster the student leaned toward at Q3.
+  // Falls back silently to the hardcoded SECONDARY_INTEREST_CHOICES map on failure.
+  async function fetchAiQ4(primaryCluster: string, q3Activity: string) {
+    if (!sessionId || !stream) return;
+    setAiQ4(null);
+    setQ4LoadingAI(true);
+    try {
+      const res = await fetch("/api/q4choices", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          stream,
+          subjects: selectedSubjectsList,
+          primaryCluster,
+          q3Activity,
+        }),
+      });
+      if (!res.ok) throw new Error("failed");
+      const data = await res.json() as { question: string; choices: Array<{ label: string; value: string }> };
+      setAiQ4(data);
+    } catch {
+      // silently fall back to hardcoded secondary choices
+    } finally {
+      setQ4LoadingAI(false);
+    }
+  }
+
   function onSubjectContinue() {
     if (selectedSubjects.size === 0 && !textVal.trim()) return;
     const typed = textVal.trim();
     const selected = Array.from(selectedSubjects);
     if (typed && selectedSubjects.size === 0) {
+      setSelectedSubjectsList([typed]);
       void postAnswer({ text: typed, isChoice: false });
     } else if (selectedSubjects.size > 0) {
       setSelectedSubjectsList(selected);
       void postAnswer({ values: selected, isChoice: true });
     }
-    if (needsAiQ3(selected, typed) && sessionId && stream) {
+    // Always generate Q3 choices with AI, grounded in what they picked/typed.
+    if (sessionId && stream) {
       void fetchAiQ3(selected, typed, stream);
     }
   }
@@ -839,10 +991,22 @@ export default function StartPage() {
       return; // subjects need explicit Continue
     }
     if (qIndex === 3) {
+      const rawCluster = value.split("::")[0];
+      const activity = getChoices().find((c) => c.value === value)?.label ?? "";
+      q3ClusterRef.current = rawCluster;
+      q3ActivityRef.current = activity;
+      setQ3Cluster(rawCluster);
+      // Kick off the deeper Q4 choices now so they're ready by the time we advance.
+      void fetchAiQ4(rawCluster, activity);
       void postAnswer({ value, isChoice: true });
       return;
     }
     if (qIndex === 4) {
+      // Secondary interest — click to advance, no delay needed
+      void postAnswer({ value, isChoice: true });
+      return;
+    }
+    if (qIndex === 5) {
       if (value === "repeat_year") {
         setInfoMessage("Taking a drop/repeat year to prep for JEE/NEET/KEAM is challenging but very rewarding. We'll adjust your path to focus on cracking these exams!");
       } else if (value === "entrance_exams") {
@@ -851,7 +1015,7 @@ export default function StartPage() {
       } else {
         setInfoMessage(null);
       }
-      
+
       // Delay advance slightly so they can read the message
       setBusy(true);
       setTimeout(() => {
@@ -868,6 +1032,16 @@ export default function StartPage() {
     if (!t || busy) return;
     if (qIndex === 2) {
       setSelectedSubjectsList([t]);
+    }
+    if (qIndex === 3) {
+      // Detect cluster from typed text so Q4 deeper choices can show
+      const detected = detectClusterFromText(t);
+      if (detected) {
+        q3ClusterRef.current = detected;
+        q3ActivityRef.current = t;
+        setQ3Cluster(detected);
+        void fetchAiQ4(detected, t);
+      }
     }
     void postAnswer({ text: t, isChoice: false });
   }
@@ -1161,8 +1335,8 @@ export default function StartPage() {
               </div>
             )}
 
-            {/* Q3 AI loading state */}
-            {qIndex === 3 && q3LoadingAI && (
+            {/* Q3 / Q4 AI loading state */}
+            {((qIndex === 3 && q3LoadingAI) || (qIndex === 4 && q4LoadingAI)) && (
               <div className="clay-card p-6 flex flex-col items-center gap-3">
                 <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 <p className="text-sm text-muted-foreground">Finding the best options for you…</p>
@@ -1170,15 +1344,15 @@ export default function StartPage() {
             )}
 
             {/* Q2–Q5: Choice buttons */}
-            {qIndex >= 2 && !(qIndex === 3 && q3LoadingAI) && (
+            {qIndex >= 2 && !(qIndex === 3 && q3LoadingAI) && !(qIndex === 4 && q4LoadingAI) && (
               <div className="clay-card p-4 space-y-2">
                 {getChoices().map((c, i) => {
                   const isSelected =
                     (qIndex === 2 && selectedSubjects.has(c.value)) ||
                     (qIndex === 3 && selectedInterests.has(c.value));
                   const iconMap: Record<number, Record<string, string>> = {
-                    4: GOAL_ICONS, 5: PRIORITY_ICONS, 6: BUDGET_ICONS,
-                    7: LOCATION_ICONS, 8: FAMILY_ICONS, 9: WORKSTYLE_ICONS,
+                    5: GOAL_ICONS, 6: PRIORITY_ICONS, 7: BUDGET_ICONS,
+                    8: LOCATION_ICONS, 9: FAMILY_ICONS, 10: WORKSTYLE_ICONS,
                   };
                   const iconToShow = iconMap[qIndex] ? (iconMap[qIndex][c.value] ?? i8("star")) : null;
 
@@ -1233,7 +1407,7 @@ export default function StartPage() {
               </button>
             )}
 
-            {/* Chat-style free-text input (Q2–Q5) — always visible */}
+            {/* Chat-style free-text input (Q2–Q5) */}
             {qIndex >= 2 && (
               <div className="mt-4">
                 <form

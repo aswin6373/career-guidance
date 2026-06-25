@@ -13,7 +13,7 @@ const STREAM_LABELS: Record<string, string> = {
 
 // Bump when the question-generation prompt changes so previously cached items
 // (stored per session) are regenerated instead of served stale.
-export const ASSESSMENT_GEN_VERSION = 4;
+export const ASSESSMENT_GEN_VERSION = 5;
 
 export type AiItem = {
   id: string;
@@ -89,7 +89,13 @@ export async function generateAiAssessmentItems(
         `  "Which problem would you most enjoy solving?"\n` +
         `  "Which class would you never skip?"\n` +
         `  "Which task would feel easiest to stick with for hours?"\n` +
-        `- Each choice is a COMPLETE concrete activity (4–9 words) — something you DO, not a job title.\n` +
+        `- THE GOLDEN RULE for choices: write each one the way you'd explain it to a 16-year-old who has NEVER heard\n` +
+        `  any career or technical words — a real, everyday thing they can PICTURE themselves doing, using familiar\n` +
+        `  objects and situations (an Excel sheet, a phone app, a shop, a science lab, a YouTube video, a poster,\n` +
+        `  a court case, a sick patient, a farm). Example: NOT "Financial analysis" but\n` +
+        `  "Setting up an Excel sheet to track a shop's daily profit".\n` +
+        `- BANNED: job titles and jargon a teenager wouldn't know ("auditing", "algorithms", "bioinformatics").\n` +
+        `- Each choice is a COMPLETE concrete activity (6–12 words) — something you DO, not a job title.\n` +
         `- All 4 choices per question must answer the same question and be clearly different from each other.\n` +
         `- dimension MUST be exactly "interest_personality" for all 4.\n` +
         `- Choice format: { "id": "a", "text": "...", "interestCluster": "<one of the locked clusters above>" }\n\n` +

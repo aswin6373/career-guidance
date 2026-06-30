@@ -659,6 +659,10 @@ export default function StartPage() {
   const [aiQ4, setAiQ4] = useState<{ question: string; choices: Array<{ label: string; value: string }> } | null>(null);
   const [q4LoadingAI, setQ4LoadingAI] = useState(false);
 
+  // Inline validation errors for Q0 and Q1
+  const [q0Errors, setQ0Errors] = useState<{ name?: string; age?: string; phone?: string; gender?: string }>({});
+  const [pctError, setPctError] = useState<string | null>(null);
+
   // Tracks which cluster the student picked at Q3 — used to fetch the right Q4 choices.
   // A ref is used alongside state so advance() sees the correct value even inside
   // async closures (state captured at call time vs ref always reads current value).
@@ -887,7 +891,13 @@ export default function StartPage() {
   // Q0: name + age continue
   function onNameAgeContinue() {
     const parsedAge = parseInt(age, 10);
-    if (!name.trim() || isNaN(parsedAge) || parsedAge < 10 || parsedAge > 30 || !/^[6-9]\d{9}$/.test(phone) || !gender) return;
+    const errors: { name?: string; age?: string; phone?: string; gender?: string } = {};
+    if (!name.trim() || name.trim().length < 2) errors.name = "Please enter your name (at least 2 letters)";
+    if (!age || isNaN(parsedAge) || parsedAge < 10 || parsedAge > 30) errors.age = "Please enter a valid age between 10 and 30";
+    if (!/^[6-9]\d{9}$/.test(phone)) errors.phone = "Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9";
+    if (!gender) errors.gender = "Please select your gender";
+    if (Object.keys(errors).length > 0) { setQ0Errors(errors); return; }
+    setQ0Errors({});
     void postAnswer({ name: name.trim(), age: parsedAge, phone: phone.trim(), gender, isChoice: false });
   }
 
@@ -895,7 +905,11 @@ export default function StartPage() {
   function onStreamContinue() {
     if (!stream) return;
     const pct = parseFloat(percentage);
-    if (isNaN(pct) || pct < 0 || pct > 100) return;
+    if (!percentage.trim() || isNaN(pct) || pct < 0 || pct > 100) {
+      setPctError("Please enter your Plus Two percentage (0–100)");
+      return;
+    }
+    setPctError(null);
     void postAnswer({ value: stream, percentage: pct, isChoice: true });
   }
 
@@ -1193,14 +1207,15 @@ export default function StartPage() {
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => { setName(e.target.value); if (q0Errors.name) setQ0Errors((prev) => ({ ...prev, name: undefined })); }}
                     placeholder="e.g. Akhil Kumar"
                     autoFocus
                     className="w-full px-4 py-3.5 text-sm outline-none placeholder:text-gray-400 transition-all"
-                    style={{ borderRadius: 16, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
-                    onFocus={(e) => { e.target.style.borderColor = "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
-                    onBlur={(e) => { e.target.style.borderColor = "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
+                    style={{ borderRadius: 16, border: q0Errors.name ? "1.5px solid #EF4444" : "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
+                    onFocus={(e) => { e.target.style.borderColor = q0Errors.name ? "#EF4444" : "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
+                    onBlur={(e) => { e.target.style.borderColor = q0Errors.name ? "#EF4444" : "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
                   />
+                  {q0Errors.name && <p className="mt-1 text-xs" style={{ color: "#EF4444" }}>{q0Errors.name}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -1208,29 +1223,31 @@ export default function StartPage() {
                     <input
                       type="number"
                       value={age}
-                      onChange={(e) => setAge(e.target.value)}
+                      onChange={(e) => { setAge(e.target.value); if (q0Errors.age) setQ0Errors((prev) => ({ ...prev, age: undefined })); }}
                       placeholder="e.g. 17"
                       min={10}
                       max={30}
                       className="w-full px-4 py-3.5 text-sm outline-none placeholder:text-gray-400 transition-all"
-                      style={{ borderRadius: 16, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
-                      onFocus={(e) => { e.target.style.borderColor = "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
-                      onBlur={(e) => { e.target.style.borderColor = "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
+                      style={{ borderRadius: 16, border: q0Errors.age ? "1.5px solid #EF4444" : "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
+                      onFocus={(e) => { e.target.style.borderColor = q0Errors.age ? "#EF4444" : "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
+                      onBlur={(e) => { e.target.style.borderColor = q0Errors.age ? "#EF4444" : "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
                     />
+                    {q0Errors.age && <p className="mt-1 text-xs" style={{ color: "#EF4444" }}>{q0Errors.age}</p>}
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-bold" style={{ color: "#6B7280" }}>Phone</label>
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 10)); if (q0Errors.phone) setQ0Errors((prev) => ({ ...prev, phone: undefined })); }}
                       placeholder="9XXXXXXXXX"
                       inputMode="numeric"
                       className="w-full px-4 py-3.5 text-sm outline-none placeholder:text-gray-400 transition-all"
-                      style={{ borderRadius: 16, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
-                      onFocus={(e) => { e.target.style.borderColor = "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
-                      onBlur={(e) => { e.target.style.borderColor = "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
+                      style={{ borderRadius: 16, border: q0Errors.phone ? "1.5px solid #EF4444" : "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
+                      onFocus={(e) => { e.target.style.borderColor = q0Errors.phone ? "#EF4444" : "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
+                      onBlur={(e) => { e.target.style.borderColor = q0Errors.phone ? "#EF4444" : "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
                     />
+                    {q0Errors.phone && <p className="mt-1 text-xs" style={{ color: "#EF4444" }}>{q0Errors.phone}</p>}
                   </div>
                 </div>
                 <p className="text-[11px]" style={{ color: "#9CA3AF" }}>
@@ -1248,7 +1265,7 @@ export default function StartPage() {
                       <button
                         key={g.value}
                         type="button"
-                        onClick={() => setGender(g.value)}
+                        onClick={() => { setGender(g.value); if (q0Errors.gender) setQ0Errors((prev) => ({ ...prev, gender: undefined })); }}
                         className="px-3 py-2.5 text-xs font-semibold transition-all"
                         style={{
                           borderRadius: 14,
@@ -1261,9 +1278,10 @@ export default function StartPage() {
                       </button>
                     ))}
                   </div>
+                  {q0Errors.gender && <p className="mt-2 text-xs" style={{ color: "#EF4444" }}>{q0Errors.gender}</p>}
                 </div>
                 <button
-                  disabled={!nameAgeValid || busy}
+                  disabled={busy}
                   onClick={onNameAgeContinue}
                   className="clay-btn w-full text-sm"
                   style={{ height: 52 }}
@@ -1310,18 +1328,19 @@ export default function StartPage() {
                     <input
                       type="number"
                       value={percentage}
-                      onChange={(e) => setPercentage(e.target.value)}
+                      onChange={(e) => { setPercentage(e.target.value); if (pctError) setPctError(null); }}
                       placeholder="e.g. 70"
                       min={0}
                       max={100}
                       step="0.01"
                       className="w-full px-4 py-3.5 text-sm outline-none placeholder:text-gray-400 transition-all"
-                      style={{ borderRadius: 16, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
-                      onFocus={(e) => { e.target.style.borderColor = "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
-                      onBlur={(e) => { e.target.style.borderColor = "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
+                      style={{ borderRadius: 16, border: pctError ? "1.5px solid #EF4444" : "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
+                      onFocus={(e) => { e.target.style.borderColor = pctError ? "#EF4444" : "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
+                      onBlur={(e) => { e.target.style.borderColor = pctError ? "#EF4444" : "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
                     />
+                    {pctError && <p className="mt-1 text-xs" style={{ color: "#EF4444" }}>{pctError}</p>}
                   </div>
-                  {streamPctValid && (
+                  {stream && (
                     <button
                       disabled={busy}
                       onClick={onStreamContinue}

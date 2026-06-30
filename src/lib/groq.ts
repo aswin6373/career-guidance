@@ -6,7 +6,7 @@ import type { ChatMessage, ChatResult } from "@/lib/groq-types";
 // Server-only Groq client.
 //
 // FALLBACK STRATEGY:
-//   Primary: qwen/qwen3-32b (stronger reasoning than llama-3.3-70b).
+//   Primary: qwen/qwen3-32b (Groq's recommended replacement for llama-3.3-70b-versatile).
 //   On 429 or 5xx → llama-3.1-8b-instant (same Groq key, separate per-model
 //   rate-limit bucket, so it's available when the primary quota is exhausted).
 

@@ -1281,6 +1281,7 @@ export default function StartPage() {
                   {q0Errors.gender && <p className="mt-2 text-xs" style={{ color: "#EF4444" }}>{q0Errors.gender}</p>}
                 </div>
                 <button
+                  type="button"
                   disabled={busy}
                   onClick={onNameAgeContinue}
                   className="clay-btn w-full text-sm"
@@ -1342,6 +1343,7 @@ export default function StartPage() {
                   </div>
                   {stream && (
                     <button
+                      type="button"
                       disabled={busy}
                       onClick={onStreamContinue}
                       className="clay-btn w-full text-sm"

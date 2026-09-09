@@ -37,3 +37,4 @@ vercel.env
 
 # Claude Code local config (not needed in repo)
 .claude/
+supabase/.temp/

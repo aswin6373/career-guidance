@@ -22,7 +22,7 @@ export const serverEnv = {
     return required("GROQ_API_KEY", process.env.GROQ_API_KEY);
   },
   get groqModel() {
-    return process.env.GROQ_MODEL ?? "qwen/qwen3-32b";
+    return process.env.GROQ_MODEL ?? "openai/gpt-oss-20b";
   },
   get kbVersion() {
     return process.env.KB_VERSION ?? "1";

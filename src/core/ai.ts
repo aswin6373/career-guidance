@@ -136,39 +136,39 @@ export interface AIChoice {
 // Values must match the VALUE SCHEMA in the prompt so the existing extractor still works.
 const HARDCODED_CONSTRAINTS: Record<string, { question: string; choices: AIChoice[] }> = {
   budget: {
-    question: "What's your family's rough budget for education after Plus Two?",
+    question: "College expenses can vary a lot depending on the course. How would your family prefer to handle education costs?",
     choices: [
-      { label: "Family can manage it comfortably", value: "no_constraint" },
-      { label: "Manageable with some effort", value: "medium" },
-      { label: "Need a scholarship or loan", value: "low" },
-      { label: "Not sure about costs yet", value: "medium" },
+      { label: "We prefer keeping costs low (looking for scholarships or government colleges)", value: "low" },
+      { label: "We can manage moderate fees for a good course", value: "medium" },
+      { label: "Budget is flexible if the course is really good", value: "no_constraint" },
+      { label: "We haven't decided on a budget yet", value: "medium" },
     ],
   },
   location: {
-    question: "How open are you to studying outside Kerala?",
+    question: "Where would you prefer to study for your degree?",
     choices: [
-      { label: "Stay within Kerala", value: "kerala" },
-      { label: "Anywhere in India", value: "india" },
-      { label: "Open to going abroad", value: "abroad" },
-      { label: "Depends on the course", value: "india" },
+      { label: "I want to study within Kerala only", value: "kerala" },
+      { label: "I am open to studying anywhere in India", value: "india" },
+      { label: "I would love to go abroad to study", value: "abroad" },
+      { label: "It depends on where the best course is", value: "india" },
     ],
   },
   family: {
-    question: "What does your family expect from your career choice?",
+    question: "Do your parents or family have a specific career path in mind for you?",
     choices: [
-      { label: "Fully supportive of my choice", value: "none" },
-      { label: "They have some preferences", value: "some_preference" },
-      { label: "They have strong expectations", value: "family_preference" },
-      { label: "Haven't discussed it yet", value: "none" },
+      { label: "No, they fully support whatever I choose", value: "none" },
+      { label: "They have a few suggestions/preferences", value: "some_preference" },
+      { label: "Yes, they have very strong expectations for me", value: "family_preference" },
+      { label: "We haven't really discussed it yet", value: "none" },
     ],
   },
   workstyle: {
-    question: "What kind of work environment appeals to you most?",
+    question: "What kind of daily work setting matches your vibe the most?",
     choices: [
-      { label: "With people — patients, students, clients", value: "social" },
-      { label: "Solo — coding, writing, or research", value: "analytical_solo" },
-      { label: "Outdoors, fieldwork, or hands-on", value: "practical_outdoor" },
-      { label: "Mix of people and independent work", value: "mixed" },
+      { label: "Working directly with people (patients, students, clients)", value: "social" },
+      { label: "Working independently (coding, writing, or researching)", value: "analytical_solo" },
+      { label: "Being outdoors, doing fieldwork, or working hands-on", value: "practical_outdoor" },
+      { label: "A healthy mix of both teamwork and solo work", value: "mixed" },
     ],
   },
 };
@@ -443,6 +443,181 @@ const VAGUE_SHORT_WORDS = new Set([
   "this one", "that one", "left", "right", "a", "b", "c", "d", "option a", "option b",
 ]);
 
+// ---------------------------------------------------------------------------
+// FOLLOW-UP — a short (2–3 question) adaptive step shown after the start quiz.
+// It reacts to what the student typed/picked and digs one level deeper into
+// their interests, so the profile (and the aptitude section after it) is sharper.
+// Each choice value is an interest cluster ID; the route saves it at 0.7.
+// ---------------------------------------------------------------------------
+export async function followUpQuestion(params: {
+  index: number; // 0-based: which follow-up question to generate
+  streamLabel?: string;
+  strongSubjects?: string[];
+  statedCareer?: string;
+  topInterests?: string[]; // human labels of their strongest interests
+  freeTexts?: string[];    // raw phrases the student typed earlier
+  allowedClusters?: string[]; // restrict choice values to these clusters only
+}): Promise<{ content: string; choices: AIChoice[]; model: string }> {
+  const focus = [
+    "Ask an indirect situational question grounded in their current student life — a free period, a school event, a weekend afternoon — where their choice naturally reveals their interest. Do NOT ask 'which field interests you' or anything that shows what you are measuring.",
+    "Ask about a concrete habit or activity from their daily life right now — what they do in free time, how they spend a weekend, what role they take in a group task — so their answer reveals their direction without them realising it.",
+    "Ask a simple everyday scenario question. The 4 choices should feel like normal options any student would pick from, but each one maps to a different interest cluster. Never mention careers, fields, or subjects directly.",
+  ][Math.min(params.index, 2)];
+
+  const known = [
+    params.streamLabel ? `Stream: ${params.streamLabel}` : "",
+    params.strongSubjects?.length ? `Strong subjects: ${params.strongSubjects.join(", ")}` : "",
+    params.topInterests?.length ? `Interests they showed: ${params.topInterests.join(", ")}` : "",
+    params.statedCareer ? `They mentioned wanting to be: ${params.statedCareer}` : "",
+    params.freeTexts?.length ? `They typed: "${params.freeTexts.join('"; "')}"` : "",
+  ].filter(Boolean).join("\n");
+
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content:
+        "You are a warm career counsellor talking to a Plus Two student (age 16–18) in Kerala, India. " +
+        "Use simple, everyday English a 16-year-old understands. Return only valid JSON — no extra text.",
+    },
+    {
+      role: "user",
+      content:
+        `Here is what we already know about the student:\n${known || "(very little — keep it general)"}\n\n` +
+        `Ask ONE question (a full sentence, about 8–18 words) that helps us understand this student better.\n` +
+        `${focus}\n` +
+        `Do NOT re-ask their stream, subjects, budget, or goal — we already have those.\n\n` +
+        `RULES FOR THE QUESTION:\n` +
+        `- Ask about a simple everyday situation — a free period, weekend, group task, or school activity.\n` +
+        `- The question itself must be NEUTRAL — do not frame it around their known interest.\n` +
+        `  BAD: "You see an unfair situation — what do you do?" (pushes toward law before they even answer)\n` +
+        `  GOOD: "Your school has a free period. What do you end up doing?"\n\n` +
+        `RULES FOR THE 4 CHOICES (most important — write each the way you'd explain it to a 16-year-old who has NEVER heard any career or technical words):\n` +
+        `- Give EXACTLY 4 choices covering at least 3 DIFFERENT interest areas — not all the same theme.\n` +
+        `  If the student likes law, include 1–2 law-related choices AND 2 choices from completely different areas.\n` +
+        `  This contrast is what makes the answer meaningful. If all choices are the same theme, the question is useless.\n` +
+        `- BANNED: job titles and jargon a teenager wouldn't know ("financial analysis", "auditing", "algorithms", "bioinformatics").\n` +
+        `- Each choice must be a COMPLETE concrete activity (5–12 words) — something you DO, using familiar objects and situations ` +
+        `(an Excel sheet, a phone app, a shop, a science lab, a YouTube video, a poster, a court case, a sick patient). No one-word fragments.\n` +
+        `- All 4 must answer the SAME question, be parallel in kind, clearly different from each other, and feel like natural options a student would genuinely consider.\n` +
+        `GOOD example — Q: "Your school has a free period. What do you end up doing?"\n` +
+        `  choices: "Helping a classmate who is stuck on something" / "Watching a documentary on a real case" / ` +
+        `"Sketching something in my notebook" / "Figuring out how an app or gadget works"\n` +
+        `BAD example — Q: "What do you do on a weekend?" choices: all 4 are law/debate/social issues themed. ` +
+        `Also bad: Q: "Code solo or team?" choices: "Solo" / "Team" / "Design" / "Analyse" (too short, jargon, don't all answer the question).\n\n` +
+        `Each choice "value" MUST be one of these interest cluster IDs:\n` +
+        `  ${INTEREST_CLUSTERS.join(", ")}\n` +
+        (params.allowedClusters?.length
+          ? `The student's already-known interests are: ${params.allowedClusters.join(", ")}. ` +
+            `Include 1–2 choices from these clusters and 2 choices from DIFFERENT clusters for contrast.\n\n`
+          : "\n") +
+        `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "technology_coding" }, ... ] }`,
+    },
+  ];
+
+  const { data, model } = await extractJson<{ question: string; choices: AIChoice[] }>(messages, { temperature: 0.6 });
+  const question = data?.question?.trim();
+  const choices = Array.isArray(data?.choices) ? data!.choices.filter((c) => c?.label && c?.value) : [];
+  if (!question || choices.length < 2) throw new Error("follow-up generation failed");
+  return { content: question, choices: choices.slice(0, 4), model };
+}
+
+export async function generateQ3Choices(params: {
+  stream: string;
+  subjects: string[];
+}): Promise<{ question: string; choices: AIChoice[] }> {
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content:
+        "You are a career counsellor for Plus Two students in Kerala, India. " +
+        "Return only valid JSON — no extra text.",
+    },
+    {
+      role: "user",
+      content:
+        `A Plus Two student (age 16–18) is in ${params.stream} stream. Their favourite subjects or interests are: ${params.subjects.join(", ")}.\n\n` +
+        `Write ONE warm, simple question (10–18 words) asking what kind of work or activity they would enjoy most, ` +
+        `based on those subjects. Then provide EXACTLY 6 choices.\n\n` +
+        `THE GOLDEN RULE — write every choice the way you'd explain it to a 16-year-old who has NEVER heard any career or technical words:\n` +
+        `- Describe a real, everyday thing they can PICTURE themselves doing — using familiar objects and situations ` +
+        `(an Excel sheet, a phone app, a shop's accounts, a science lab, a YouTube video, a poster, a court case, a sick patient, a farm).\n` +
+        `- BANNED: job titles ("Accountant", "Journalist") and technical/jargon words a teenager wouldn't know ` +
+        `("financial analysis", "data structures", "bioinformatics", "auditing", "litigation", "biotechnology", "algorithms").\n` +
+        `- Each choice is a full activity phrase (6–12 words) — something you DO, never one or two words.\n\n` +
+        `EXAMPLES OF THE RIGHT STYLE (write your own, do not copy):\n` +
+        `  Accounts → "Setting up an Excel sheet to track a shop's daily profit"\n` +
+        `  Coding → "Building a phone app that students in your class would actually use"\n` +
+        `  Biology → "Finding out what's making a patient sick and how to treat them"\n` +
+        `  Law → "Standing up in court and arguing to win a case for someone"\n` +
+        `  Design → "Drawing how an app's screens and buttons should look"\n\n` +
+        `OTHER RULES:\n` +
+        `- All 6 choices must answer the SAME question and be clearly different from each other.\n` +
+        `- All choices must fit the student's stream and subjects.\n` +
+        `- Each choice "value" MUST be exactly one of these interest cluster IDs:\n` +
+        `  ${INTEREST_CLUSTERS.join(", ")}\n` +
+        `- Do NOT use any value outside that list.\n\n` +
+        `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "health_medicine" }, ... ] }`,
+    },
+  ];
+
+  const { data } = await extractJson<{ question: string; choices: AIChoice[] }>(messages, { temperature: 0.6 });
+  const question = data?.question?.trim() ?? "What kind of work or activity would you enjoy the most?";
+  const choices = Array.isArray(data?.choices)
+    ? data!.choices.filter((c) => c?.label && INTEREST_CLUSTERS.includes(c.value as typeof INTEREST_CLUSTERS[number]))
+    : [];
+  if (choices.length < 2) throw new Error("Q3 AI generation returned too few valid choices");
+  return { question, choices: choices.slice(0, 6) };
+}
+
+// Q4 — the deeper follow-up shown right after the student picks a Q3 activity.
+// Drills INTO their chosen direction: given the cluster they leaned toward and the
+// activity they picked, offer 4 concrete sub-directions (each tagged with the
+// closest interest cluster) so we learn which slice of the field truly fits.
+export async function generateQ4Choices(params: {
+  stream: string;
+  subjects: string[];
+  primaryCluster: string;
+  q3Activity?: string;
+}): Promise<{ question: string; choices: AIChoice[] }> {
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content:
+        "You are a career counsellor for Plus Two students in Kerala, India. " +
+        "Return only valid JSON — no extra text.",
+    },
+    {
+      role: "user",
+      content:
+        `A Plus Two student (age 16–18) in ${params.stream} stream picked subjects: ${params.subjects.join(", ") || "not specified"}.\n` +
+        `They just showed they are drawn to this kind of work: "${params.q3Activity ?? params.primaryCluster}" ` +
+        `(broad area: ${params.primaryCluster}).\n\n` +
+        `Ask ONE warm, simple question (8–16 words) that goes ONE STEP DEEPER — which PART of that area they'd enjoy most. ` +
+        `Then provide EXACTLY 4 choices.\n\n` +
+        `THE GOLDEN RULE — write every choice the way you'd explain it to a 16-year-old who has NEVER heard any career or technical words:\n` +
+        `- Describe a real, everyday thing they can PICTURE themselves doing — familiar objects and situations ` +
+        `(an Excel sheet, a phone app, a shop, a science lab, a YouTube video, a poster, a court case, a sick patient, a farm).\n` +
+        `- BANNED: job titles and technical/jargon words a teenager wouldn't know.\n` +
+        `- Each choice is a full activity phrase (6–12 words) — something you DO, never one or two words.\n\n` +
+        `OTHER RULES:\n` +
+        `- All 4 choices stay INSIDE the area "${params.primaryCluster}" but explore clearly DIFFERENT slices of it.\n` +
+        `- All 4 answer the SAME question and are clearly different from each other.\n` +
+        `- Each choice "value" MUST be exactly one of these interest cluster IDs (pick the closest fit for each slice):\n` +
+        `  ${INTEREST_CLUSTERS.join(", ")}\n` +
+        `- Do NOT use any value outside that list.\n\n` +
+        `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "technology_coding" }, ... ] }`,
+    },
+  ];
+
+  const { data } = await extractJson<{ question: string; choices: AIChoice[] }>(messages, { temperature: 0.6 });
+  const question = data?.question?.trim() ?? "Which part of that sounds most like you?";
+  const choices = Array.isArray(data?.choices)
+    ? data!.choices.filter((c) => c?.label && INTEREST_CLUSTERS.includes(c.value as typeof INTEREST_CLUSTERS[number]))
+    : [];
+  if (choices.length < 2) throw new Error("Q4 AI generation returned too few valid choices");
+  return { question, choices: choices.slice(0, 4) };
+}
+
 export async function extractProfileDelta(params: {
   reply: string;
   stage?: string;
@@ -464,6 +639,12 @@ export async function extractProfileDelta(params: {
   const schemaHint = {
     interests: `object mapping any of [${INTEREST_CLUSTERS.join(", ")}] to 0..1.
 PRIMARY RULE: only set from interests the student EXPLICITLY states they enjoy or are drawn to.
+ENJOYMENT MAPPING (when they say they LIKE/LOVE/PLAY/ENJOY something, set that cluster ~0.7):
+  sports / football / cricket / basketball / badminton / hockey / athletics / gym / fitness / playing games / coaching → defence_adventure
+  cooking / baking / food / hospitality → design_visual
+  drawing / painting / music / dance / acting / photography / design → design_visual
+  helping / teaching / caring for people / social work → helping_teaching
+  computers / coding / gaming tech / gadgets → technology_coding
 EXCEPTION — stated career inference: if the student says they WANT to BE or BECOME a specific career, you MAY set the PRIMARY interest cluster for that career at 0.7 (even if they didn't say "I enjoy X"). Use ONLY these mappings:
   doctor / nurse / dentist / surgeon / hospital / medical / MBBS → health_medicine
   software / programmer / coder / developer / computer science / IT / game developer / app developer / AI → technology_coding

@@ -82,15 +82,30 @@ export function scoreCareer(career: Career, profile: StudentProfile, kb: Knowled
     aptitude: Object.keys(profile.aptitude).length > 0,
     academic: profile.academic.strongSubjects.length > 0,
     personality: Object.values(profile.personality).some((v) => Math.abs(v ?? 0) > 0),
-    aspiration: !!profile.aspiration.goalOrientation,
+    aspiration: !!profile.aspiration.goalOrientation || (profile.aspiration.careerPriorities?.length ?? 0) > 0,
     constraint: !!profile.constraints.budgetBand || !!profile.constraints.locationPref,
   };
 
   // Interest match: weighted overlap of student interests vs career interest signals.
-  const interestScore = weightedMatch(
+  let interestScore = weightedMatch(
     signals.filter((s) => s.signalType === "interest").map((s) => [s.signalKey, s.weight]),
     (k) => profile.interests[k as keyof typeof profile.interests] ?? 0
   );
+
+  // Culinary interest booster: if career is culinary and user selected any culinary option or typed cooking
+  const isCulinaryCareer = career.id === "pastry_chef" || career.id === "restaurant_manager" || career.id === "food_scientist" || career.id === "food_stylist" || career.domainId === "hospitality";
+  const rawInterests = (profile as any)._selectedInterests as string[] | undefined;
+  const hasCulinaryInterest = rawInterests && rawInterests.some(val => {
+    const v = val.toLowerCase();
+    return v.includes("chef") || v.includes("culinary") || v.includes("restaurant") || v.includes("food") || v.includes("cook") || v.includes("bak") || v.includes("hospitality") || v.includes("hotel");
+  });
+  const hasCulinarySubject = profile.academic.strongSubjects.some(s => {
+    const low = s.toLowerCase();
+    return low.includes("cook") || low.includes("chef") || low.includes("bake") || low.includes("baking") || low.includes("culinary") || low.includes("food") || low.includes("hotel") || low.includes("hospitality");
+  });
+  if (isCulinaryCareer && (hasCulinaryInterest || hasCulinarySubject)) {
+    interestScore = 0.95;
+  }
   pushFactor(factors, "interest", interestScore, SCORING_WEIGHTS.interest, topLabel(career, "interest"));
 
   // Aptitude match: career aptitude signals vs student aptitude (normalized 0..1).
@@ -158,11 +173,30 @@ function weightedMatch(signals: [string, number][], studentValue: (k: string) =>
 function academicFit(career: Career, profile: StudentProfile): number {
   // Reward when career domain aligns with strong subjects (heuristic for MVP).
   const strong = profile.academic.strongSubjects.map((s) => s.toLowerCase());
-  if (!strong.length) return 0.5; // neutral when unknown
+  if (!strong.length) {
+    // If no academic subjects are explicitly entered, but a stated career or custom interests match culinary
+    const isCulinaryCareer = career.id === "pastry_chef" || career.id === "restaurant_manager" || career.id === "food_scientist" || career.id === "food_stylist" || career.domainId === "hospitality";
+    const hasCulinaryStated = profile.aspiration.statedCareer && (() => {
+      const low = profile.aspiration.statedCareer.toLowerCase();
+      return low.includes("cook") || low.includes("chef") || low.includes("bake") || low.includes("baking") || low.includes("culinary") || low.includes("food") || low.includes("hotel") || low.includes("hospitality");
+    })();
+    if (isCulinaryCareer && hasCulinaryStated) return 0.95;
+    return 0.5; // neutral when unknown
+  }
+
+  // Check culinary keywords in strong subjects
+  const hasCulinarySubject = strong.some(s => {
+    return s.includes("cook") || s.includes("chef") || s.includes("bake") || s.includes("baking") || s.includes("culinary") || s.includes("food") || s.includes("hotel") || s.includes("hospitality");
+  });
+  const isCulinaryCareer = career.id === "pastry_chef" || career.id === "restaurant_manager" || career.id === "food_scientist" || career.id === "food_stylist" || career.domainId === "hospitality";
+  if (isCulinaryCareer && hasCulinarySubject) {
+    return 0.95; // Strong boost for cooking matching culinary careers
+  }
+
   const domainHints: Record<string, string[]> = {
     "computing":        ["maths", "computer", "physics"],
     "engineering":      ["maths", "physics"],
-    "medical":          ["biology", "chemistry"],
+    "medica":           ["biology", "chemistry"],
     "allied_health":    ["biology", "chemistry"],
     "sciences":         ["physics", "chemistry", "biology", "maths"],
     "commerce_finance": ["accountancy", "economics", "maths", "business"],
@@ -172,9 +206,9 @@ function academicFit(career: Career, profile: StudentProfile): number {
     "humanities":       ["english", "history", "political", "social"],
     "architecture":     ["maths", "physics"],
     "design":           ["art", "computer"],
-    "media":            ["english", "language"],
+    "media":            ["english", "language", "art", "humanities", "history"],
     "agriculture":      ["biology", "chemistry"],
-    "hospitality":      ["english"],
+    "hospitality":      ["english", "business", "commerce", "chemistry", "biology", "accountancy", "economics", "maths"],
   };
   const hints = domainHints[career.domainId] ?? [];
   const hit = hints.some((h) => strong.some((s) => s.includes(h)));
@@ -196,36 +230,92 @@ function personalityFit(career: Career, profile: StudentProfile): number {
   return clamp(0.3 + 0.7 * ratio);
 }
 
-function aspirationFit(career: Career, profile: StudentProfile): number {
+function goalScore(career: Career, profile: StudentProfile): number {
   const goal = profile.aspiration.goalOrientation;
   if (!goal) return 0.5;
   if (goal === "higher_study") {
-    // Careers that require or prefer postgraduate study align best with this goal.
     if (career.higherStudyRequired === "mandatory") return 0.9;
     if (career.higherStudyRequired === "preferred") return 0.75;
-    return 0.6; // 'none' — compatible but not a strong pull
+    return 0.6;
+  }
+  if (goal === "entrance_exams") {
+    const stream = profile.academic.stream;
+    // Per-stream lookup: primary domains are the direct target of the entrance exam,
+    // secondary domains are also opened by the same exam but are not the main goal.
+    const ENTRANCE_DOMAINS: Record<string, { primary: string[]; secondary: string[] }> = {
+      science_bio:   { primary: ["medica"],                         secondary: ["allied_health"] },
+      science_maths: { primary: ["engineering"],                    secondary: ["computing", "architecture"] },
+      science_cs:    { primary: ["computing"],                      secondary: ["engineering"] },
+      humanities:    { primary: ["law"],                            secondary: ["government", "humanities"] },
+      commerce:      { primary: ["management", "commerce_finance"], secondary: [] },
+    };
+    const map = stream ? ENTRANCE_DOMAINS[stream] : null;
+    if (map) {
+      if (map.primary.includes(career.domainId)) return 0.95;
+      if (map.secondary.includes(career.domainId)) return 0.80;
+    }
+    if (career.higherStudyRequired === "mandatory") return 0.70;
+    if (career.higherStudyRequired === "preferred") return 0.55;
+    return 0.40;
   }
   if (goal === "job_soon") return career.minYearsToEarn && career.minYearsToEarn <= 4 ? 0.9 : 0.4;
   if (goal === "business") {
     if (career.riskLevel === "entrepreneurial") return 0.9;
     if (career.riskLevel === "moderate") return 0.6;
-    return 0.4; // stable careers don't align with entrepreneurial goal
+    return 0.4;
   }
   if (goal === "government") {
-    // Score by how strongly a career tracks to government recruitment.
     if (career.domainId === "government") return 0.9;
-    // Humanities, law, commerce, engineering all have significant govt pipelines (PSC, IBPS, PSU).
     const govCompatible = ["humanities", "law", "commerce_finance", "engineering"];
     if (govCompatible.includes(career.domainId)) return 0.6;
-    return 0.4; // primarily private-sector paths
+    return 0.4;
   }
   return 0.5;
 }
 
+function priorityScore(career: Career, profile: StudentProfile): number {
+  const priorities = profile.aspiration.careerPriorities ?? [];
+  if (!priorities.length) return 0.5;
+  if (priorities.includes("high_salary")) {
+    if (career.earningBand === "high") return 0.9;
+    if (career.earningBand === "medium") return 0.65;
+    if (career.earningBand === "low") return 0.35;
+  }
+  if (priorities.includes("job_security")) {
+    if (career.riskLevel === "stable") return 0.9;
+    if (career.riskLevel === "moderate") return 0.6;
+    if (career.riskLevel === "entrepreneurial") return 0.3;
+  }
+  if (priorities.includes("government_service")) {
+    if (career.domainId === "government") return 0.95;
+    const govCompatible = ["law", "humanities", "engineering", "commerce_finance"];
+    if (govCompatible.includes(career.domainId)) return 0.65;
+    return 0.35;
+  }
+  return 0.5; // passion / unknown priority — neutral
+}
+
+function aspirationFit(career: Career, profile: StudentProfile): number {
+  const gs = goalScore(career, profile);
+  const ps = priorityScore(career, profile);
+  const hasPriority = (profile.aspiration.careerPriorities?.length ?? 0) > 0;
+  const hasGoal = !!profile.aspiration.goalOrientation;
+  if (!hasGoal && !hasPriority) return 0.5;
+  if (!hasGoal) return ps;
+  if (!hasPriority) return gs;
+  // Both present: goal drives 65%, priority drives 35%
+  return gs * 0.65 + ps * 0.35;
+}
+
 function constraintFit(career: Career, profile: StudentProfile): number {
   let score = 0.7;
+  // Penalties
   if (profile.constraints.timeToIncomeNeed === "urgent" && (career.minYearsToEarn ?? 5) > 4) score -= 0.3;
-  if (profile.constraints.budgetBand === "low" && career.higherStudyRequired === "mandatory") score -= 0.15;
+  if (profile.constraints.budgetBand === "low" && career.higherStudyRequired === "mandatory") score -= 0.2;
+  // Boosts — good constraint matches
+  if ((profile.constraints.budgetBand === "high" || profile.constraints.budgetBand === "no_constraint") && career.higherStudyRequired === "mandatory") score += 0.15;
+  if (profile.constraints.locationPref === "abroad" && (career.jobMarketIndia === "strong" || career.earningBand === "high")) score += 0.1;
+  if (profile.constraints.locationPref === "india" && career.jobMarketIndia === "strong") score += 0.08;
   return clamp(score);
 }
 

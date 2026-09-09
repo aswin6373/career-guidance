@@ -8,13 +8,14 @@ import { mergeProfile, computeCompleteness, type ProfileDelta } from "@/core/pro
 import {
   generateAiAssessmentItems,
   toPublicItems,
+  ASSESSMENT_GEN_VERSION,
   type AiItem,
 } from "@/core/assessment-generator";
 import type { AssessmentItemPublic } from "@/types/assessment";
 import type { StudentProfile, InterestCluster } from "@/types/profile";
 import { APTITUDES, INTEREST_CLUSTERS } from "@/types/profile";
 
-const INTEREST_ITEMS_TO_SHOW = 5;
+const INTEREST_ITEMS_TO_SHOW = 4;
 
 function interestRelevanceScore(tags: InterestCluster[], capturedClusters: Set<InterestCluster>): number {
   const overlap = tags.filter((t) => capturedClusters.has(t)).length;
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get("session");
 
   if (!sessionId) {
-    return NextResponse.json({ items: staticFallback(null), total: 10 });
+    return NextResponse.json({ items: staticFallback(null), total: 7 });
   }
 
   const ipHash = await clientIpHash(req);
@@ -74,9 +75,12 @@ export async function GET(req: NextRequest) {
     const studentProfile = profileRaw as Partial<StudentProfile> | null;
 
     // Return cached items if already generated (background pre-generation or prior load).
-    // Cache hits bypass the rate limit — no Groq call needed.
+    // Cache hits bypass the rate limit — no Groq call needed. We also require the
+    // cached items to match the current generator version, so a prompt change
+    // regenerates instead of serving stale questions.
     const cached = profileRaw?._aiAssessmentItems as AiItem[] | undefined;
-    if (Array.isArray(cached) && cached.length >= 8) {
+    const cachedVersion = profileRaw?._aiAssessmentVersion as number | undefined;
+    if (Array.isArray(cached) && cached.length >= 6 && cachedVersion === ASSESSMENT_GEN_VERSION) {
       return NextResponse.json({ items: toPublicItems(cached), total: cached.length });
     }
 
@@ -84,12 +88,19 @@ export async function GET(req: NextRequest) {
     const limited = await enforceRateLimit(limiters.recommend, "assessment-gen", [sessionId, ipHash]);
     if (limited) return limited;
 
+    // Extract top 2 interest clusters to lock the confirmation questions.
+    const topClusters = Object.entries(studentProfile?.interests ?? {})
+      .filter(([, v]) => (v ?? 0) >= 0.2)
+      .sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))
+      .slice(0, 2)
+      .map(([k]) => k);
+
     // Not yet cached — generate now (fallback path for sessions without pre-generation).
-    const aiItems = await generateAiAssessmentItems(studentProfile);
+    const aiItems = await generateAiAssessmentItems(studentProfile, topClusters.length ? topClusters : undefined);
     await db.from("student_profiles").upsert(
       {
         session_id: sessionId,
-        profile: { ...(profileRaw ?? {}), _aiAssessmentItems: aiItems },
+        profile: { ...(profileRaw ?? {}), _aiAssessmentItems: aiItems, _aiAssessmentVersion: ASSESSMENT_GEN_VERSION },
         updated_at: new Date().toISOString(),
       },
       { onConflict: "session_id" }
@@ -104,9 +115,9 @@ export async function GET(req: NextRequest) {
         .select("profile")
         .eq("session_id", sessionId)
         .maybeSingle();
-      return NextResponse.json({ items: staticFallback(row?.profile as Partial<StudentProfile> | null), total: 10 });
+      return NextResponse.json({ items: staticFallback(row?.profile as Partial<StudentProfile> | null), total: 7 });
     } catch {
-      return NextResponse.json({ items: staticFallback(null), total: 10 });
+      return NextResponse.json({ items: staticFallback(null), total: 7 });
     }
   }
 }
@@ -149,7 +160,7 @@ export async function POST(req: NextRequest) {
       // correct = 100, wrong = 0. Falls back to 50 if correctId missing (shouldn't happen).
       const isAptitude = (APTITUDES as readonly string[]).includes(aiItem.dimension);
       const score = isAptitude
-        ? (aiItem.correctId ? (choiceId === aiItem.correctId ? 100 : 0) : 50)
+        ? (aiItem.correctId ? (choiceId === aiItem.correctId ? 100 : 50) : 50)
         : null;
 
       await db.from("assessment_responses").delete().eq("session_id", sessionId).eq("item_id", itemId);
@@ -160,6 +171,11 @@ export async function POST(req: NextRequest) {
         answer: choiceId,
         score,
       });
+
+      void db.from("conversations").insert([
+        { session_id: sessionId, role: "assistant", stage: "aptitude", content: aiItem.questionText, model: "aptitude" },
+        { session_id: sessionId, role: "user", stage: "aptitude", content: selectedChoice?.text ?? choiceId, model: "aptitude" },
+      ]).then(undefined, () => {});
 
       // Build a combined profile delta for this answer:
       //   • Aptitude items → update the aptitude dimension score
@@ -224,6 +240,11 @@ export async function POST(req: NextRequest) {
       answer: choiceId,
       score: score !== null ? score : null,
     });
+
+    void db.from("conversations").insert([
+      { session_id: sessionId, role: "assistant", stage: "aptitude", content: item.questionText, model: "aptitude" },
+      { session_id: sessionId, role: "user", stage: "aptitude", content: choice.text, model: "aptitude" },
+    ]).then(undefined, () => {});
 
     const { data: allResponses } = await db
       .from("assessment_responses")

@@ -27,11 +27,20 @@ type CareerRec = {
   courses: StoredCourse[];
 };
 
+type ConversationRow = { role: string; stage: string | null; content: string; created_at: string };
+
+const STAGE_LABELS: Record<string, string> = {
+  start_quiz: "Start Quiz",
+  followup:   "Follow-up",
+  aptitude:   "Aptitude",
+};
+
 export default async function LeadDetailPage({ params }: Props) {
   const data = await getLeadDetail(params.id);
   if (!data) notFound();
 
   const { lead, session, profile, recommendation, feedback } = data;
+  const conversations = (data.conversations ?? []) as ConversationRow[];
   const l = lead as Record<string, unknown>;
   const p = profile?.profile as Record<string, unknown> | null ?? null;
 
@@ -266,6 +275,66 @@ export default async function LeadDetailPage({ params }: Props) {
               Profile not yet complete — recommendation pending.
             </div>
           )}
+
+          {/* Conversation history */}
+          <Section title={`Conversation history${conversations.length > 0 ? ` (${conversations.length})` : ""}`}>
+            {conversations.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No conversation saved yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {(["start_quiz", "followup", "aptitude"] as const).map((stage) => {
+                  const msgs = conversations.filter((m) => m.stage === stage);
+                  if (!msgs.length) return null;
+                  return (
+                    <div key={stage}>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {STAGE_LABELS[stage]}
+                      </p>
+                      <div className="space-y-1.5">
+                        {msgs.map((m, i) => (
+                          <div
+                            key={i}
+                            className={`rounded-lg px-3 py-2 text-xs ${
+                              m.role === "assistant"
+                                ? "bg-muted/50 text-muted-foreground"
+                                : "bg-primary/10 text-foreground font-medium"
+                            }`}
+                          >
+                            {m.content}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Show ungrouped messages that don't match a known stage */}
+                {(() => {
+                  const known = new Set(["start_quiz", "followup", "aptitude"]);
+                  const other = conversations.filter((m) => !m.stage || !known.has(m.stage));
+                  if (!other.length) return null;
+                  return (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Other</p>
+                      <div className="space-y-1.5">
+                        {other.map((m, i) => (
+                          <div
+                            key={i}
+                            className={`rounded-lg px-3 py-2 text-xs ${
+                              m.role === "assistant"
+                                ? "bg-muted/50 text-muted-foreground"
+                                : "bg-primary/10 text-foreground font-medium"
+                            }`}
+                          >
+                            <span className="opacity-50">[{m.stage ?? "no stage"}]</span> {m.content}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </Section>
         </div>
       </div>
     </div>

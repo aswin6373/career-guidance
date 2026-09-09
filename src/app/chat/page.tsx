@@ -185,7 +185,7 @@ function ChatInner() {
     const payload = {
       sessionId,
       email: String(fd.get("email") ?? ""),
-      gender: String(fd.get("gender") ?? "") || undefined,
+      gender: String(fd.get("gender") ?? ""),
       district: String(fd.get("district") ?? ""),
       preferredLanguage: "en",
       consentGiven: fd.get("consentGiven") === "on",
@@ -379,8 +379,8 @@ function ChatInner() {
             </div>
             <form onSubmit={submitDataForm} className="space-y-3">
               <div>
-                <label className="mb-1.5 block text-xs font-bold" style={{ color: "#6B7280" }}>Email</label>
-                <input name="email" type="email" required placeholder="you@example.com" className="w-full px-4 py-3 text-sm outline-none placeholder:text-gray-400 transition-all" style={{ borderRadius: 14, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
+                <label className="mb-1.5 block text-xs font-bold" style={{ color: "#6B7280" }}>Email (optional)</label>
+                <input name="email" type="email" placeholder="you@example.com" className="w-full px-4 py-3 text-sm outline-none placeholder:text-gray-400 transition-all" style={{ borderRadius: 14, border: "1.5px solid rgba(30,111,255,0.15)", background: "#F4F6FB", color: "#111827" }}
                   onFocus={(e) => { e.target.style.borderColor = "#1E6FFF"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 3px rgba(30,111,255,0.1)"; }}
                   onBlur={(e) => { e.target.style.borderColor = "rgba(30,111,255,0.15)"; e.target.style.background = "#F4F6FB"; e.target.style.boxShadow = "none"; }}
                 />
@@ -394,9 +394,9 @@ function ChatInner() {
                   </Select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold" style={{ color: "#6B7280" }}>Gender (optional)</label>
-                  <Select name="gender" defaultValue="" className="h-11 rounded-2xl border text-sm" style={{ borderColor: "rgba(30,111,255,0.15)", background: "#F4F6FB" }}>
-                    <option value="">Prefer not to say</option>
+                  <label className="mb-1.5 block text-xs font-bold" style={{ color: "#6B7280" }}>Gender</label>
+                  <Select name="gender" required defaultValue="" className="h-11 rounded-2xl border text-sm" style={{ borderColor: "rgba(30,111,255,0.15)", background: "#F4F6FB" }}>
+                    <option value="" disabled>Select</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>

@@ -45,7 +45,7 @@ export default function OnboardingPage() {
       sessionId,
       name: String(fd.get("name") ?? ""),
       phone: String(fd.get("phone") ?? ""),
-      email: String(fd.get("email")),
+      email: String(fd.get("email") ?? ""),
       age: Number(fd.get("age")),
       district: String(fd.get("district") ?? ""),
       stream: String(fd.get("stream") ?? ""),
@@ -124,8 +124,8 @@ export default function OnboardingPage() {
             </Field>
           </div>
 
-          <Field label="Email">
-            <Input name="email" type="email" required placeholder="you@example.com" />
+          <Field label="Email (optional)">
+            <Input name="email" type="email" placeholder="you@example.com (optional)" />
           </Field>
 
           <div className="grid grid-cols-2 gap-4">

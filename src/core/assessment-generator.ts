@@ -14,7 +14,6 @@ const STREAM_LABELS: Record<string, string> = {
 // Bump when the question-generation prompt changes so previously cached items
 // (stored per session) are regenerated instead of served stale.
 export const ASSESSMENT_GEN_VERSION = 7;
-export const ASSESSMENT_GEN_VERSION = 7;
 
 export type AiItem = {
   id: string;

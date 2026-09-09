@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const kb = await loadKnowledgeBase();
     // Score more careers than we need so we can surface a spread of distinct
     // COURSES (the next step a student actually takes) rather than career titles.
-    const result = generateRecommendations(sessionId, profile, kb, { topN: 8 });
+    const result = generateRecommendations(sessionId, profile, kb, { topN: 20 });
 
     // Pick the best course to take next: walk the ranked careers, take each one's
     // primary (first) course, dedupe by courseId, and keep the top 3 distinct

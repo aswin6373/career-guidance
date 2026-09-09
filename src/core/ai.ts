@@ -491,16 +491,19 @@ export async function followUpQuestion(params: {
         `- The question itself must be NEUTRAL — do not frame it around their known interest.\n` +
         `  BAD: "You see an unfair situation — what do you do?" (pushes toward law before they even answer)\n` +
         `  GOOD: "Your school has a free period. What do you end up doing?"\n\n` +
-        `RULES FOR THE 4 CHOICES (most important):\n` +
-        `- The 4 choices MUST cover at least 3 DIFFERENT interest areas — not all the same theme.\n` +
+        `RULES FOR THE 4 CHOICES (most important — write each the way you'd explain it to a 16-year-old who has NEVER heard any career or technical words):\n` +
+        `- Give EXACTLY 4 choices covering at least 3 DIFFERENT interest areas — not all the same theme.\n` +
         `  If the student likes law, include 1–2 law-related choices AND 2 choices from completely different areas.\n` +
         `  This contrast is what makes the answer meaningful. If all choices are the same theme, the question is useless.\n` +
-        `- Each choice must be a COMPLETE concrete activity (5–9 words). No one-word fragments.\n` +
-        `- All 4 must answer the SAME question and feel like natural options a student would genuinely consider.\n` +
+        `- BANNED: job titles and jargon a teenager wouldn't know ("financial analysis", "auditing", "algorithms", "bioinformatics").\n` +
+        `- Each choice must be a COMPLETE concrete activity (5–12 words) — something you DO, using familiar objects and situations ` +
+        `(an Excel sheet, a phone app, a shop, a science lab, a YouTube video, a poster, a court case, a sick patient). No one-word fragments.\n` +
+        `- All 4 must answer the SAME question, be parallel in kind, clearly different from each other, and feel like natural options a student would genuinely consider.\n` +
         `GOOD example — Q: "Your school has a free period. What do you end up doing?"\n` +
         `  choices: "Helping a classmate who is stuck on something" / "Watching a documentary on a real case" / ` +
         `"Sketching something in my notebook" / "Figuring out how an app or gadget works"\n` +
-        `BAD example — Q: "What do you do on a weekend?" choices: all 4 are law/debate/social issues themed.\n\n` +
+        `BAD example — Q: "What do you do on a weekend?" choices: all 4 are law/debate/social issues themed. ` +
+        `Also bad: Q: "Code solo or team?" choices: "Solo" / "Team" / "Design" / "Analyse" (too short, jargon, don't all answer the question).\n\n` +
         `Each choice "value" MUST be one of these interest cluster IDs:\n` +
         `  ${INTEREST_CLUSTERS.join(", ")}\n` +
         (params.allowedClusters?.length
@@ -532,16 +535,24 @@ export async function generateQ3Choices(params: {
     {
       role: "user",
       content:
-        `A student is in ${params.stream} stream. Their favourite subjects or interests are: ${params.subjects.join(", ")}.\n\n` +
-        `Write ONE friendly question (10–18 words) asking what kind of work or activity they would enjoy most, ` +
+        `A Plus Two student (age 16–18) is in ${params.stream} stream. Their favourite subjects or interests are: ${params.subjects.join(", ")}.\n\n` +
+        `Write ONE warm, simple question (10–18 words) asking what kind of work or activity they would enjoy most, ` +
         `based on those subjects. Then provide EXACTLY 6 choices.\n\n` +
-        `RULES FOR CHOICES (very important):\n` +
-        `- Each choice MUST be a concrete activity — something you DO, described as a short phrase (5–10 words).\n` +
-        `- NEVER write a job title (e.g. NOT "Journalist" or "News Anchor" — instead write "Reporting stories and writing news articles").\n` +
-        `- NEVER write a one-word or two-word answer — always a full activity phrase.\n` +
-        `- Good examples: "Arguing cases in court", "Investigating social injustice cases", "Writing and presenting news reports".\n` +
-        `- All 6 choices must directly answer the same question and be clearly different from each other.\n` +
-        `- All choices must be realistic for the student's stream and subjects.\n` +
+        `THE GOLDEN RULE — write every choice the way you'd explain it to a 16-year-old who has NEVER heard any career or technical words:\n` +
+        `- Describe a real, everyday thing they can PICTURE themselves doing — using familiar objects and situations ` +
+        `(an Excel sheet, a phone app, a shop's accounts, a science lab, a YouTube video, a poster, a court case, a sick patient, a farm).\n` +
+        `- BANNED: job titles ("Accountant", "Journalist") and technical/jargon words a teenager wouldn't know ` +
+        `("financial analysis", "data structures", "bioinformatics", "auditing", "litigation", "biotechnology", "algorithms").\n` +
+        `- Each choice is a full activity phrase (6–12 words) — something you DO, never one or two words.\n\n` +
+        `EXAMPLES OF THE RIGHT STYLE (write your own, do not copy):\n` +
+        `  Accounts → "Setting up an Excel sheet to track a shop's daily profit"\n` +
+        `  Coding → "Building a phone app that students in your class would actually use"\n` +
+        `  Biology → "Finding out what's making a patient sick and how to treat them"\n` +
+        `  Law → "Standing up in court and arguing to win a case for someone"\n` +
+        `  Design → "Drawing how an app's screens and buttons should look"\n\n` +
+        `OTHER RULES:\n` +
+        `- All 6 choices must answer the SAME question and be clearly different from each other.\n` +
+        `- All choices must fit the student's stream and subjects.\n` +
         `- Each choice "value" MUST be exactly one of these interest cluster IDs:\n` +
         `  ${INTEREST_CLUSTERS.join(", ")}\n` +
         `- Do NOT use any value outside that list.\n\n` +
@@ -556,6 +567,55 @@ export async function generateQ3Choices(params: {
     : [];
   if (choices.length < 2) throw new Error("Q3 AI generation returned too few valid choices");
   return { question, choices: choices.slice(0, 6) };
+}
+
+// Q4 — the deeper follow-up shown right after the student picks a Q3 activity.
+// Drills INTO their chosen direction: given the cluster they leaned toward and the
+// activity they picked, offer 4 concrete sub-directions (each tagged with the
+// closest interest cluster) so we learn which slice of the field truly fits.
+export async function generateQ4Choices(params: {
+  stream: string;
+  subjects: string[];
+  primaryCluster: string;
+  q3Activity?: string;
+}): Promise<{ question: string; choices: AIChoice[] }> {
+  const messages: ChatMessage[] = [
+    {
+      role: "system",
+      content:
+        "You are a career counsellor for Plus Two students in Kerala, India. " +
+        "Return only valid JSON — no extra text.",
+    },
+    {
+      role: "user",
+      content:
+        `A Plus Two student (age 16–18) in ${params.stream} stream picked subjects: ${params.subjects.join(", ") || "not specified"}.\n` +
+        `They just showed they are drawn to this kind of work: "${params.q3Activity ?? params.primaryCluster}" ` +
+        `(broad area: ${params.primaryCluster}).\n\n` +
+        `Ask ONE warm, simple question (8–16 words) that goes ONE STEP DEEPER — which PART of that area they'd enjoy most. ` +
+        `Then provide EXACTLY 4 choices.\n\n` +
+        `THE GOLDEN RULE — write every choice the way you'd explain it to a 16-year-old who has NEVER heard any career or technical words:\n` +
+        `- Describe a real, everyday thing they can PICTURE themselves doing — familiar objects and situations ` +
+        `(an Excel sheet, a phone app, a shop, a science lab, a YouTube video, a poster, a court case, a sick patient, a farm).\n` +
+        `- BANNED: job titles and technical/jargon words a teenager wouldn't know.\n` +
+        `- Each choice is a full activity phrase (6–12 words) — something you DO, never one or two words.\n\n` +
+        `OTHER RULES:\n` +
+        `- All 4 choices stay INSIDE the area "${params.primaryCluster}" but explore clearly DIFFERENT slices of it.\n` +
+        `- All 4 answer the SAME question and are clearly different from each other.\n` +
+        `- Each choice "value" MUST be exactly one of these interest cluster IDs (pick the closest fit for each slice):\n` +
+        `  ${INTEREST_CLUSTERS.join(", ")}\n` +
+        `- Do NOT use any value outside that list.\n\n` +
+        `Return exactly: { "question": "...", "choices": [ { "label": "...", "value": "technology_coding" }, ... ] }`,
+    },
+  ];
+
+  const { data } = await extractJson<{ question: string; choices: AIChoice[] }>(messages, { temperature: 0.6 });
+  const question = data?.question?.trim() ?? "Which part of that sounds most like you?";
+  const choices = Array.isArray(data?.choices)
+    ? data!.choices.filter((c) => c?.label && INTEREST_CLUSTERS.includes(c.value as typeof INTEREST_CLUSTERS[number]))
+    : [];
+  if (choices.length < 2) throw new Error("Q4 AI generation returned too few valid choices");
+  return { question, choices: choices.slice(0, 4) };
 }
 
 export async function extractProfileDelta(params: {
